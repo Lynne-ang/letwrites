@@ -1,0 +1,118 @@
+# Letwrites — production self-host stack.
+#
+#   Caddy (auto-HTTPS)  →  BookStack (the wiki + Letwrites authz theme)  →  MariaDB
+#
+# Runs Letwrites on a real domain with a real TLS cert, one command. Caddy fetches
+# and renews Let's Encrypt certificates automatically — no manual SSL.
+#
+#   cd wiki/deploy && cp .env.example .env && edit .env && ./deploy.sh
+#
+# SECURITY — pin images before production. Mutable tags (:latest) let a re-tagged
+# or compromised upstream image be pulled silently. Pin each to a digest once:
+#   docker compose pull && docker images --digests | grep -E 'caddy|bookstack|mariadb'
+# then replace the tag with image@sha256:<digest>. The :latest tags below should
+# be pinned to a digest for a real deployment.
+services:
+  caddy:
+    image: caddy:2.8   # pinned minor; add @sha256 digest for production
+    container_name: letwrites_caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - LETWRITES_DOMAIN=${LETWRITES_DOMAIN}
+      - LETWRITES_ACME_EMAIL=${LETWRITES_ACME_EMAIL}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - bookstack
+
+  bookstack:
+    image: lscr.io/linuxserver/bookstack:latest   # Production: replace :latest with a release tag + @sha256 digest
+    container_name: letwrites_bookstack
+    restart: unless-stopped
+    depends_on:
+      bookstack_db:
+        condition: service_healthy   # wait for the DB healthcheck (avoids the first-boot migration race)
+    # Pass .env through so any BookStack setting can be enabled by adding it to .env —
+    # AUTH_METHOD + LDAP_* / SAML2_* / OIDC_* for SSO, MAIL_* for invites, etc. BookStack
+    # ignores vars it doesn't recognise. The explicit `environment:` below wins for its keys.
+    # See DEPLOY.md "Authentication & SSO" and https://www.bookstackapp.com/docs/admin/
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TZ:-UTC}
+      - APP_URL=https://${LETWRITES_DOMAIN}
+      - APP_NAME=Letwrites          # brands the wiki as Letwrites (header + page titles)
+      - REGISTRATION_ENABLED=false  # IT-admin only: no public self-signup. Admin invites users.
+      - APP_KEY=${APP_KEY}
+      - DB_HOST=bookstack_db
+      - DB_PORT=3306
+      - DB_USERNAME=bookstack
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_DATABASE=bookstackapp
+      - APP_THEME=letwrites                       # activates the Letwrites authz theme
+      - LETWRITES_AUTHZ_SECRET=${LETWRITES_AUTHZ_SECRET}
+    volumes:
+      - ./data/config:/config
+      - ../themes/letwrites:/app/www/themes/letwrites:ro   # the authz endpoint (no fork)
+    # NOTE: no host port — Caddy fronts it on the internal network.
+
+  bookstack_db:
+    # Official mariadb has a built-in healthcheck.sh, which makes `condition:
+    # service_healthy` above reliable. (BookStack supports MySQL 8 / MariaDB 10.6+.)
+    image: mariadb:11.4   # Production: pin to a @sha256 digest for reproducible prod builds
+    container_name: letwrites_bookstack_db
+    restart: unless-stopped
+    # Full unicode + emoji support (BookStack recommends utf8mb4). mariadb:11.4 already
+    # defaults to utf8mb4; pinning it makes new databases explicit and upgrade-safe.
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci"]
+    environment:
+      - TZ=${TZ:-UTC}
+      - MARIADB_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
+      - MARIADB_DATABASE=bookstackapp
+      - MARIADB_USER=bookstack
+      - MARIADB_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - ./data/db:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 40s
+
+  # Letwrites agent-safe engine — INTERNAL ONLY (no public port, not behind Caddy).
+  # It answers over the wiki with live per-user permission checks. It will sit
+  # behind the OAuth/MCP gateway (the identity spike) once that's built; until
+  # then it's reachable only on the internal network, guarded by a shared secret.
+  # Needs a BookStack API token (create it in the UI after first boot, then set
+  # BOOKSTACK_TOKEN_ID/SECRET in .env and `docker compose up -d letwrites_engine`).
+  letwrites_engine:
+    build:
+      context: ../../engine
+    container_name: letwrites_engine
+    restart: unless-stopped
+    depends_on:
+      - bookstack
+    environment:
+      - PORT=8787
+      - BOOKSTACK_URL=http://bookstack:80          # internal service address
+      - BOOKSTACK_TOKEN_ID=${BOOKSTACK_TOKEN_ID:-}
+      - BOOKSTACK_TOKEN_SECRET=${BOOKSTACK_TOKEN_SECRET:-}
+      - LETWRITES_AUTHZ_SECRET=${LETWRITES_AUTHZ_SECRET}
+      - LETWRITES_ENGINE_SECRET=${LETWRITES_ENGINE_SECRET}
+      - LETWRITES_AUDIT_FILE=/app/data/audit/audit.jsonl
+    volumes:
+      - ./data/engine-audit:/app/data/audit   # durable, tamper-evident audit log
+    # No `ports:` — internal only. Expose via the MCP gateway when it lands.
+
+volumes:
+  caddy_data:
+  caddy_config:

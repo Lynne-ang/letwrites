@@ -1,0 +1,20 @@
+<!--
+  Letwrites branding for BookStack — injected via Settings ▸ Customization ▸
+  "Custom HTML Head Content" (setting key: app-custom-head), applied by
+  wiki/deploy/seed-branding.sh. SUPPORTED BookStack theming (CSS only, no fork).
+
+  Deliberately MINIMAL and safe: the app name + accent color are set via BookStack's
+  own settings (app-name / app-color) so the header, links, and dark mode stay
+  consistent and correct. This file only adds a modern font and softer card corners —
+  no header recolor, no ::after wordmark, no link/button/dropdown overrides (those
+  caused contrast + alignment bugs because they can't be visually verified blind).
+-->
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+body, .page-content, input, select, textarea, button, .button {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+  -webkit-font-smoothing: antialiased;
+}
+/* softer, modern corners — purely cosmetic, cannot affect contrast or layout */
+.card, .content-wrap, .grid-card { border-radius: 12px !important; }
+</style>

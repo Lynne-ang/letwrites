@@ -1,0 +1,9 @@
+apiVersion: v2
+name: letwrites
+description: Self-hosted Letwrites — BookStack wiki (+ authz theme), MariaDB, and the agent-safe engine, for any Kubernetes cluster (incl. private / air-gapped) behind your own Ingress.
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+keywords: [wiki, bookstack, confluence-migration, self-hosted, knowledge-base]
+home: https://letwrites.com
+sources: [https://github.com/Lynne-ang/letwrites]

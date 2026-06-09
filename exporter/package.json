@@ -1,0 +1,34 @@
+{
+  "name": "@letwrites/confluence-export",
+  "version": "0.1.0",
+  "description": "Export content out of Confluence into portable Markdown + attachments, with an honest report of what couldn't be auto-converted.",
+  "type": "module",
+  "bin": {
+    "letwrites-export": "./dist/cli.js",
+    "letwrites-import": "./dist/import-cli.js",
+    "letwrites-migrate": "./dist/migrate.js",
+    "letwrites-oauth": "./dist/confluence-oauth-cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "export": "tsx src/cli.ts",
+    "import": "tsx src/import-cli.ts",
+    "migrate": "tsx src/migrate.ts",
+    "oauth": "tsx src/confluence-oauth-cli.ts",
+    "demo": "tsx src/demo.ts",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "node-html-parser": "^6.1.13"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.4.0",
+    "vitest": "^1.4.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

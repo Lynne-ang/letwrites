@@ -1,0 +1,19 @@
+Letwrites — the open-source, self-hosted Confluence exit
+Copyright 2026 Letwrites contributors
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+---
+
+Third-party components Letwrites deploys or depends on (not covered by this
+repository's license, used under their own terms):
+
+- BookStack — MIT License — https://www.bookstackapp.com/
+  Letwrites extends BookStack via a theme (wiki/themes/letwrites) and does not
+  modify or redistribute BookStack's source. BookStack is pulled as a
+  container image at deploy time.
+- Caddy — Apache-2.0 — https://caddyserver.com/
+- MariaDB — GPL-2.0 (server, used as an unmodified container) — https://mariadb.org/
+
+Node dependencies are listed in each package's package.json and carry their
+own licenses.

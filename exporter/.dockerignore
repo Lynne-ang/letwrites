@@ -1,0 +1,8 @@
+node_modules
+dist
+demo-export
+letwrites-export
+*-export
+their-export
+**/*.test.ts
+.git

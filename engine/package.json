@@ -1,0 +1,22 @@
+{
+  "name": "@letwrites/engine",
+  "version": "0.1.0",
+  "description": "Letwrites control-plane engine (alpha scaffold): connector-agnostic permission boundary. Connector #1 = BookStack authz client.",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "serve": "tsx src/server.ts",
+    "demo": "tsx src/demo.ts",
+    "demo:live": "tsx src/demo-live.ts",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.4.0",
+    "vitest": "^1.4.0"
+  },
+  "engines": { "node": ">=18" }
+}

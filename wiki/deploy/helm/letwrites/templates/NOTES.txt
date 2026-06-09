@@ -1,0 +1,32 @@
+Letwrites is deploying to {{ .Values.domain }}.
+
+1. Watch it come up (BookStack runs DB migrations on first boot — up to ~5 min):
+     kubectl get pods -l app.kubernetes.io/instance={{ .Release.Name }} -w
+
+2. Point DNS for {{ .Values.domain }} at your Ingress controller's address.
+   {{- if .Values.ingress.tls.enabled }}
+   TLS uses secret "{{ .Values.ingress.tls.secretName }}" (cert-manager can fill it).
+   {{- end }}
+
+3. FIRST LOGIN = your IT admin. Open https://{{ .Values.domain }}/login and sign in with
+   the seeded owner account:
+       email:    admin@admin.com
+       password: password
+   IMMEDIATELY change the email + password (Edit Profile) — these are well-known defaults,
+   so do it the moment the wiki is reachable (ideally before you point public DNS at the
+   Ingress). That account is now your admin.
+   Public registration is {{ if .Values.bookstack.registrationEnabled }}ENABLED{{ else }}DISABLED{{ end }} — {{ if not .Values.bookstack.registrationEnabled }}nobody can self-sign-up; the admin invites users (Settings ▸ Users).{{ else }}anyone can register. Set bookstack.registrationEnabled=false for a private KB.{{ end }}
+
+4. Migrate your Confluence content (as the admin, create an API token under
+   Edit Profile ▸ API Tokens), then run the migration image:
+       docker run --rm -v "$PWD/exports:/work" \
+         -e BOOKSTACK_URL=https://{{ .Values.domain }} \
+         -e BOOKSTACK_TOKEN_ID=xxx -e BOOKSTACK_TOKEN_SECRET=yyy \
+         {{ .Values.registry }}/letwrites-migrate:{{ .Values.imageTag }} \
+         --from-confluence-word /work/page.doc --in /work/out
+
+5. The agent-safe engine runs from the start but stays UNCONFIGURED until it has a
+   BookStack token — its /health reports {"configured":false} and /ask returns 503 (it
+   fails closed, by design). To activate it: put the API token from step 4 into
+   secrets.bookstackTokenId / bookstackTokenSecret and `helm upgrade`. The engine stays
+   internal (ClusterIP) — do not expose it via Ingress.

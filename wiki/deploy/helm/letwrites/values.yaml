@@ -1,0 +1,64 @@
+# Letwrites Helm values. Minimum to set: `domain` and the `secrets.*` (generate with openssl).
+# Everything runs inside your cluster; expose ONLY the wiki via Ingress. The engine stays
+# internal (ClusterIP) — it's reached by the future MCP gateway, never the public internet.
+
+# Public hostname the wiki is served on (your Ingress routes this to BookStack).
+domain: docs.example.com
+
+# Pinnable images. Pin imageTag to a release (e.g. "0.1.0") for reproducible deploys.
+registry: ghcr.io/lynne-ang
+imageTag: "0.1.0"           # pin to a release for reproducible deploys; ":latest" tracks main
+
+bookstack:
+  image: ""                 # default: {registry}/letwrites-bookstack:{imageTag}
+  replicas: 1               # BookStack is single-writer (RWO upload volume) — keep at 1
+  registrationEnabled: false  # IT-admin only. No public signup — admins invite users.
+  storage: 10Gi             # uploads + config (ReadWriteOnce)
+  storageClass: ""          # "" = cluster default
+  puid: 1000
+  pgid: 1000
+  tz: UTC
+  # Extra BookStack env, e.g. SSO. Standard k8s env entries; see bookstackapp.com/docs/admin.
+  # extraEnv:
+  #   - { name: AUTH_METHOD, value: "ldap" }
+  #   - { name: LDAP_SERVER, value: "ldaps://ad.acme.com:636" }
+  #   - { name: LDAP_BASE_DN, value: "ou=People,dc=acme,dc=com" }
+  #   - { name: LDAP_DN, value: "cn=bookstack,dc=acme,dc=com" }
+  #   - { name: LDAP_PASS, valueFrom: { secretKeyRef: { name: my-ldap-secret, key: pass } } }
+  #   - { name: LDAP_USER_FILTER, value: "(&(uid={user}))" }
+  extraEnv: []
+
+engine:
+  enabled: true
+  image: ""                 # default: {registry}/letwrites-engine:{imageTag}
+  replicas: 1
+  auditStorage: 1Gi         # durable, tamper-evident audit log (ReadWriteOnce)
+  storageClass: ""
+
+mariadb:
+  image: mariadb:11.4
+  storage: 8Gi
+  storageClass: ""
+  database: bookstackapp
+  user: bookstack
+
+# Expose the wiki. Works with any Ingress controller (nginx, traefik, ...).
+ingress:
+  enabled: true
+  className: nginx
+  annotations: {}           # e.g. cert-manager.io/cluster-issuer: letsencrypt-prod
+  tls:
+    enabled: true
+    secretName: letwrites-tls
+
+# Secrets. Either fill these (generate: openssl rand -hex 24; APP_KEY: see NOTES) or set
+# secrets.existingSecret to the name of a Secret you created with the same keys.
+secrets:
+  existingSecret: ""
+  appKey: ""                # base64:... — `docker run --rm lscr.io/linuxserver/bookstack:latest appkey` or php artisan key:generate --show
+  dbPassword: ""
+  dbRootPassword: ""
+  authzSecret: ""           # shared between BookStack theme and the engine
+  engineSecret: ""          # gates the engine's /ask endpoint
+  bookstackTokenId: ""      # fill AFTER first boot (admin ▸ API token), then helm upgrade
+  bookstackTokenSecret: ""

@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Letwrites: leave Confluence with nothing left behind</title>
+<link rel="icon" type="image/png" sizes="64x64" href="/favicon.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+<meta name="description" content="The complete, self-hosted Confluence exit. One guided export moves your whole space (pages, structure, permissions, and the images every other tool drops) onto a wiki you own, with a migration integrity report that counts every page and image against your Confluence source and confirms each one arrived. Open source. Free to self-host. Safe for AI agents when you're ready." />
+<style>
+  :root{
+    --bg:#0b0d11; --bg2:#0f1318; --panel:#13171e; --panel2:#181d26; --tint:rgba(47,107,255,.07);
+    --border:#212833; --border2:#2c3542;
+    --text:#e9edf3; --muted:#98a2b1; --faint:#828b99;
+    --accent:#2f6bff; --accent-hi:#4b81ff; --accent-soft:rgba(47,107,255,.12);
+    --good:#3ecf8e; --bad:#ef6470;
+    --radius:12px; --maxw:1140px;
+    --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --mono:"SF Mono",ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--text);font-family:var(--font);line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+
+  /* keyboard focus rings + skip link (a11y) */
+  :focus-visible{outline:2px solid var(--accent-hi);outline-offset:3px;border-radius:8px}
+  .btn:focus-visible{outline-color:#dbe4ff}
+  .skip{position:absolute;left:16px;top:-60px;z-index:200;background:var(--accent);color:#fff;padding:10px 16px;border-radius:8px;font-size:14px;font-weight:600;transition:top .15s}
+  .skip:focus{top:12px}
+  header.hero:focus{outline:none}
+  .muted{color:var(--muted)} .accent-text{color:var(--accent-hi)}
+
+  .icon{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;display:inline-block;vertical-align:middle;flex-shrink:0}
+
+  section{padding:104px 0;border-top:1px solid var(--border);position:relative}
+  .label{display:inline-block;font-family:var(--mono);color:var(--accent-hi);font-weight:600;font-size:12px;letter-spacing:.16em;text-transform:uppercase;margin-bottom:18px}
+  h2{font-size:clamp(27px,4vw,40px);letter-spacing:-.025em;font-weight:750;line-height:1.12;max-width:18ch}
+  .section-sub{color:var(--muted);font-size:18px;max-width:62ch;margin-top:16px;line-height:1.65}
+
+  /* reveal-on-scroll (subtle) */
+  .reveal{opacity:0;transform:translateY(16px);transition:opacity .55s cubic-bezier(.2,.6,.2,1),transform .55s cubic-bezier(.2,.6,.2,1)}
+  .reveal.in{opacity:1;transform:none}
+  .stagger>*{opacity:0;transform:translateY(16px);transition:opacity .5s cubic-bezier(.2,.6,.2,1),transform .5s cubic-bezier(.2,.6,.2,1)}
+  .stagger.in>*{opacity:1;transform:none}
+  .stagger.in>*:nth-child(2){transition-delay:.07s}
+  .stagger.in>*:nth-child(3){transition-delay:.14s}
+  .stagger.in>*:nth-child(4){transition-delay:.21s}
+  .stagger.in>*:nth-child(5){transition-delay:.28s}
+  .stagger.in>*:nth-child(6){transition-delay:.35s}
+
+  /* buttons (single accent, tinted shadow, no glow) */
+  .btn{display:inline-flex;align-items:center;gap:9px;background:var(--accent);color:#fff;font-weight:600;padding:12px 22px;border-radius:10px;font-size:15px;border:1px solid transparent;white-space:nowrap;transition:background .18s,transform .12s,border-color .18s}
+  .btn:hover{background:var(--accent-hi);transform:translateY(-1px)}
+  .btn:active{transform:translateY(0)}
+  .btn .icon{width:18px;height:18px;transition:transform .18s}
+  .btn:hover .icon{transform:translateX(3px)}
+  .btn.ghost{background:transparent;border-color:var(--border2);color:var(--text)}
+  .btn.ghost:hover{border-color:var(--accent);background:var(--accent-soft);transform:translateY(-1px)}
+  .btn.ghost:hover .icon{transform:none}
+  .btn.sm{padding:9px 15px;font-size:14px}
+
+  /* nav (single line, real logo) */
+  nav{position:sticky;top:0;z-index:80;background:rgba(11,13,17,.78);backdrop-filter:blur(14px);border-bottom:1px solid var(--border)}
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;height:64px}
+  .logo{display:flex;align-items:center;gap:11px;font-weight:750;font-size:18px;letter-spacing:-.02em}
+  .logo .mark{width:30px;height:30px;border-radius:8px;display:block}
+  .nav-links{display:flex;gap:30px;align-items:center;font-size:14.5px}
+  .nav-links a.lnk{color:var(--muted);position:relative}
+  .nav-links a.lnk::after{content:"";position:absolute;left:0;bottom:-6px;width:0;height:2px;background:var(--accent);transition:width .22s}
+  .nav-links a.lnk:hover{color:var(--text)} .nav-links a.lnk:hover::after{width:100%}
+
+  /* hero (asymmetric split) */
+  header.hero{padding:88px 0 72px;position:relative;overflow:hidden}
+  .hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:64px;align-items:center}
+  .hero .tagline{font-family:var(--mono);color:var(--muted);font-size:12.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;margin-bottom:22px;display:inline-flex;align-items:center;gap:9px}
+  .hero .tagline::before{content:"";width:22px;height:1px;background:var(--accent-hi)}
+  h1{font-size:clamp(34px,4.6vw,52px);line-height:1.06;letter-spacing:-.03em;font-weight:800;margin-bottom:22px}
+  .hero .sub{font-size:clamp(17px,2vw,20px);color:var(--muted);max-width:50ch;margin-bottom:32px;line-height:1.6}
+  .cta-row{display:flex;gap:13px;flex-wrap:wrap}
+
+  /* command card (real, useful install commands) */
+  .cmd{background:#0c0f14;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:0 24px 60px -34px rgba(0,0,0,.8)}
+  .cmd .head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);background:#0e1218}
+  .cmd .head .ttl{display:flex;align-items:center;gap:9px;color:var(--muted);font-size:13px;font-weight:600}
+  .cmd .head .ttl .icon{width:15px;height:15px;color:var(--accent-hi)}
+  .copy{cursor:pointer;border:1px solid var(--border2);background:var(--panel);color:var(--muted);font-size:11.5px;padding:4px 11px;border-radius:7px;font-family:var(--font);transition:.18s}
+  .copy:hover{color:var(--text);border-color:var(--accent)}
+  .cmd pre{padding:18px 20px;font:13.5px/1.95 var(--mono);color:#cdd6e4;overflow-x:auto}
+  .cmd .c{color:var(--faint)} .cmd .p{color:var(--good)} .cmd .o{color:var(--muted)}
+
+  /* blueprint grid texture (engineering feel), strongest behind the hero */
+  body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+    background-image:linear-gradient(rgba(123,140,170,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(123,140,170,.05) 1px,transparent 1px);
+    background-size:44px 44px;
+    -webkit-mask-image:radial-gradient(125% 70% at 72% -5%,#000,transparent 72%);
+    mask-image:radial-gradient(125% 70% at 72% -5%,#000,transparent 72%)}
+
+  /* ACCESS GATE: hero signature visual */
+  .gate{position:relative;background:rgba(12,15,20,.74);border:1px solid var(--border2);border-radius:14px;overflow:hidden;box-shadow:0 30px 80px -42px rgba(0,0,0,.92)}
+  .gate>*{position:relative;z-index:1}
+  .gate .ghead{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-bottom:1px solid var(--border);font:600 11.5px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+  .gate .live{display:inline-flex;align-items:center;gap:7px;color:var(--good)}
+  .gate .live i{width:7px;height:7px;border-radius:50%;background:var(--good);box-shadow:0 0 0 3px rgba(62,207,142,.16)}
+  .gate .query{padding:15px 16px;border-bottom:1px solid var(--border);font:14px/1.5 var(--mono);color:#dbe4f2}
+  .gate .query .q{display:block;color:var(--faint);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px}
+  .gate .grow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border)}
+  .gate .actor{font:13px/1.4 var(--mono)} .gate .actor b{color:var(--text);font-weight:600} .gate .actor span{color:var(--faint);margin-left:8px}
+  .gate .res{display:inline-flex;align-items:center;gap:6px;font:600 12px/1 var(--mono);padding:6px 11px;border-radius:8px}
+  .gate .res .icon{width:14px;height:14px}
+  .gate .res.ok{color:var(--good);background:rgba(62,207,142,.1);border:1px solid rgba(62,207,142,.32)}
+  .gate .res.no{color:var(--bad);background:rgba(239,100,112,.1);border:1px solid rgba(239,100,112,.32)}
+  .gate .verdict{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+  .gate .verdict em{font-style:normal;font:11.5px/1 var(--mono);color:var(--faint)}
+  .gate .gfoot{display:flex;align-items:center;gap:9px;justify-content:center;padding:14px 16px;font-size:12.5px;color:var(--muted)}
+  .gate .gfoot .icon{width:15px;height:15px;color:var(--good)}
+  .gate-cap{margin-top:16px;color:var(--muted);font-size:14.5px;line-height:1.55;max-width:46ch}
+  .gate .scan{position:absolute;left:0;right:0;top:0;height:1px;z-index:2;background:linear-gradient(90deg,transparent,rgba(47,107,255,.7),transparent);animation:gscan 4.2s cubic-bezier(.4,0,.2,1) infinite;pointer-events:none}
+  @keyframes gscan{0%{top:5%;opacity:0}12%{opacity:1}88%{opacity:1}100%{top:95%;opacity:0}}
+
+  /* thin trust band under hero */
+  .trustband{border-top:1px solid var(--border)}
+  .trustband .row{display:grid;grid-template-columns:repeat(3,1fr)}
+  .trustband .it{display:flex;align-items:center;justify-content:center;gap:10px;padding:22px 16px;color:var(--muted);font-size:14.5px}
+  .trustband .it+.it{border-left:1px solid var(--border)}
+  .trustband .it b{color:var(--text);font-weight:600}
+  .trustband .it .icon{width:18px;height:18px;color:var(--good)}
+
+  /* problem: hairline list, not floating cards */
+  .plist{margin-top:48px;border-top:1px solid var(--border)}
+  .prow{display:grid;grid-template-columns:52px 1fr;gap:22px;padding:30px 0;border-bottom:1px solid var(--border);align-items:start}
+  .prow .ic{width:44px;height:44px;border-radius:11px;display:grid;place-items:center;background:var(--panel2);border:1px solid var(--border);color:var(--accent-hi)}
+  .prow .ic .icon{width:22px;height:22px}
+  .prow h3{font-size:19px;letter-spacing:-.01em;margin-bottom:7px}
+  .prow p{color:var(--muted);font-size:15.5px;max-width:64ch}
+
+  /* steps */
+  .steps{margin-top:52px;display:flex;flex-direction:column;gap:18px}
+  .step{display:grid;grid-template-columns:52px 1fr;gap:24px;align-items:start;background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:28px 30px;transition:border-color .2s}
+  .step:hover{border-color:var(--border2)}
+  .step .n{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;font-weight:700;font-size:17px;background:var(--accent-soft);border:1px solid var(--border2);color:var(--accent-hi)}
+  .step h3{font-size:20px;letter-spacing:-.015em;margin-bottom:8px}
+  .step p{color:var(--muted);font-size:15.5px;max-width:74ch}
+  .step .code{margin-top:16px;background:#0c0f14;border:1px solid var(--border);border-radius:10px;padding:14px 16px;font:13px/1.8 var(--mono);color:#cdd6e4;overflow-x:auto;position:relative}
+  .step .code .c{color:var(--faint)} .step .code .o{color:var(--good)}
+  .step .code .copy{position:absolute;top:11px;right:11px}
+  .step .tags{margin-top:14px;display:flex;gap:8px;flex-wrap:wrap}
+  .tag{font-size:12.5px;color:var(--muted);border:1px solid var(--border);border-radius:999px;padding:4px 12px;background:var(--bg2);display:inline-flex;gap:6px;align-items:center}
+  .tag .icon{width:14px;height:14px;color:var(--good)}
+
+  /* why: access demo */
+  .split2{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:48px}
+  .who{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:24px;transition:border-color .2s}
+  .who.allow{border-color:rgba(62,207,142,.32)}
+  .who.deny{border-color:rgba(239,100,112,.32)}
+  .who .h{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+  .who .name{font-weight:700;font-size:16px}
+  .who .role{font-size:12px;color:var(--muted);border:1px solid var(--border2);padding:2px 10px;border-radius:999px}
+  .who .ans{font:13px/1.6 var(--mono);background:#0c0f14;border:1px solid var(--border);border-radius:9px;padding:14px;color:#cdd6e4}
+  .who .verdict{margin-top:13px;font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px}
+  .who .verdict .icon{width:18px;height:18px}
+  .who.allow .verdict{color:var(--good)} .who.deny .verdict{color:var(--bad)}
+  .auditline{margin-top:22px;color:var(--muted);font-size:14.5px}
+  .auditline code{background:var(--panel2);border:1px solid var(--border);padding:2px 8px;border-radius:6px;font:12.5px/1 var(--mono)}
+
+  /* open source band */
+  .oss{background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:48px}
+  .oss .badge{display:inline-flex;gap:8px;align-items:center;background:rgba(62,207,142,.1);border:1px solid rgba(62,207,142,.28);color:var(--good);font-size:13px;font-weight:600;padding:6px 14px;border-radius:999px;margin-bottom:20px}
+  .oss .badge .icon{width:15px;height:15px}
+  .oss h2{max-width:20ch}
+
+  /* features: bento with rhythm */
+  .bento{display:grid;grid-template-columns:repeat(6,1fr);gap:16px;margin-top:48px}
+  .cell{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:26px;transition:border-color .2s;grid-column:span 2}
+  .cell:hover{border-color:var(--border2)}
+  .cell.wide{grid-column:span 3}
+  .cell.lead{grid-column:span 6;display:grid;grid-template-columns:1fr 1fr;gap:30px;align-items:center;background:var(--tint);border-color:var(--border2)}
+  .cell.tint{background:var(--tint);border-color:var(--border2)}
+  .cell .chip{width:44px;height:44px;border-radius:11px;display:grid;place-items:center;background:var(--panel2);border:1px solid var(--border);color:var(--accent-hi);margin-bottom:16px}
+  .cell .chip .icon{width:22px;height:22px}
+  .cell h3{font-size:18px;margin-bottom:9px;letter-spacing:-.01em}
+  .cell p{color:var(--muted);font-size:15px;line-height:1.6}
+  .cell .mini{background:#0c0f14;border:1px solid var(--border);border-radius:10px;padding:16px;font:12.5px/1.8 var(--mono);color:#cdd6e4}
+  .cell .mini .allow{color:var(--good)} .cell .mini .deny{color:var(--bad)} .cell .mini .c{color:var(--faint)}
+
+  /* pricing (tiers are legitimately columns) */
+  .price-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:52px;align-items:stretch}
+  .price{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:32px;display:flex;flex-direction:column;transition:border-color .2s}
+  .price:hover{border-color:var(--border2)}
+  .price.feat{border-color:var(--accent);position:relative}
+  .price.feat .ribbon{position:absolute;top:-11px;left:24px;background:var(--accent);color:#fff;font-size:11px;font-weight:700;letter-spacing:.04em;padding:4px 12px;border-radius:7px;text-transform:uppercase}
+  .price .tier{font-size:14px;font-weight:700;letter-spacing:.01em;color:var(--text)}
+  .price .amt{font-size:40px;font-weight:800;letter-spacing:-.03em;margin:12px 0 2px}
+  .price .amt small{font-size:15px;font-weight:500;color:var(--muted)}
+  .price .blurb{color:var(--muted);font-size:14px;min-height:46px;margin-bottom:20px;line-height:1.55}
+  .price ul{list-style:none;margin:0 0 24px;flex:1}
+  .price li{padding:9px 0;font-size:14.5px;display:flex;gap:10px;align-items:flex-start;border-top:1px solid var(--border)}
+  .price li:first-child{border-top:none}
+  .price li .icon{width:17px;height:17px;margin-top:2px;flex-shrink:0}
+  .price li .ck{color:var(--good)} .price li .lk{color:var(--accent-hi)}
+  .price .btn{width:100%;justify-content:center}
+  .price-note{text-align:center;color:var(--faint);font-size:13.5px;margin-top:26px}
+
+  /* faq */
+  .faq{margin-top:48px;max-width:820px;margin-left:auto;margin-right:auto}
+  details{border:1px solid var(--border);border-radius:12px;background:var(--panel);margin-bottom:12px;overflow:hidden;transition:border-color .2s}
+  details[open]{border-color:var(--border2)}
+  details summary{padding:20px 24px;cursor:pointer;font-weight:600;font-size:16.5px;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:16px}
+  details summary::-webkit-details-marker{display:none}
+  details summary .icon{width:20px;height:20px;color:var(--accent-hi);transition:transform .22s;flex-shrink:0}
+  details[open] summary .icon{transform:rotate(45deg)}
+  details .a{padding:0 24px 22px;color:var(--muted);font-size:15px;line-height:1.65}
+
+  /* final + footer */
+  .final h2{margin:0 auto}
+  .final .box{background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:64px 32px;text-align:center}
+  footer{border-top:1px solid var(--border);padding:48px 0;color:var(--muted);font-size:14px}
+  footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:24px}
+  footer .cols{display:flex;gap:56px;flex-wrap:wrap}
+  footer .col h4{font-size:13px;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px}
+  footer .col a{display:block;color:var(--muted);padding:4px 0;font-size:14px;transition:color .15s}
+  footer .col a:hover{color:var(--text)}
+  footer .logo .mark{width:26px;height:26px}
+
+  @media(max-width:880px){
+    .hero-grid{grid-template-columns:1fr;gap:40px}
+    h1{max-width:none}
+    .trustband .row{grid-template-columns:1fr}
+    .trustband .it+.it{border-left:none;border-top:1px solid var(--border);padding-left:0}
+    .split2{grid-template-columns:1fr}
+    .price-grid{grid-template-columns:1fr}
+    .bento{grid-template-columns:1fr}
+    .cell,.cell.wide,.cell.lead{grid-column:auto}
+    .cell.lead{grid-template-columns:1fr}
+    .nav-links a.lnk{display:none}
+    nav .nav-links .btn.ghost{display:none}
+    section{padding:72px 0}
+    .step{grid-template-columns:1fr;gap:14px}
+    .oss{padding:32px}
+  }
+  @media(prefers-reduced-motion:reduce){
+    *{animation:none!important;transition:none!important}
+    .reveal,.stagger>*{opacity:1;transform:none}
+    .gate .scan{display:none}
+  }
+</style>
+</head>
+<body id="top">
+<a class="skip" href="#main">Skip to content</a>
+
+<!-- ICON SPRITE (line icons, no emoji) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-trend" viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8"/><path d="M17 7h4v4"/></symbol>
+  <symbol id="i-archive" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8"/><path d="M10 12h4"/></symbol>
+  <symbol id="i-bot" viewBox="0 0 24 24"><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M12 8V5"/><circle cx="12" cy="3.5" r="1.2"/><path d="M9 13.5h.01M15 13.5h.01"/><path d="M2 13h2M20 13h2"/></symbol>
+  <symbol id="i-package" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.3 7 12 12l8.7-5M12 22V12"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+  <symbol id="i-filecheck" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="m9 15 2 2 4-4"/></symbol>
+  <symbol id="i-server" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="8" rx="2"/><rect x="2" y="13" width="20" height="8" rx="2"/><path d="M6 7h.01M6 17h.01"/></symbol>
+  <symbol id="i-plug" viewBox="0 0 24 24"><path d="M12 22v-5M9 7V2M15 7V2M7 7h10v3a5 5 0 0 1-10 0z"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-checkcircle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m8.5 12 2.5 2.5 4.5-5"/></symbol>
+  <symbol id="i-xcircle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6M9 9l6 6"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-terminal" viewBox="0 0 24 24"><path d="m4 17 6-6-6-6M12 19h8"/></symbol>
+</svg>
+
+<nav>
+  <div class="wrap">
+    <a class="logo" href="#top"><img class="mark" src="/apple-touch-icon.png" alt="Letwrites logo" width="30" height="30" decoding="async" /> Letwrites</a>
+    <div class="nav-links">
+      <a class="lnk" href="#how">How it works</a>
+      <a class="lnk" href="#why">Why Letwrites</a>
+      <a class="lnk" href="#opensource">Open source</a>
+      <a class="lnk" href="onboard.html">Onboarding</a>
+      <a class="lnk" href="#pricing">Pricing</a>
+      <a class="btn ghost sm" href="https://github.com/Lynne-ang/letwrites"><svg aria-hidden="true" focusable="false" class="icon"><use href="#i-star"/></svg> GitHub</a>
+      <a class="btn sm" href="#opensource">Self-host free <svg aria-hidden="true" focusable="false" class="icon"><use href="#i-arrow"/></svg></a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header class="hero" id="main" tabindex="-1">
+  <div class="wrap">
+    <div class="hero-grid">
+      <div class="reveal">
+        <p class="tagline">Open source, self-hosted Confluence exit</p>
+        <h1>Leave Confluence with <span class="accent-text">nothing left behind.</span></h1>
+        <p class="sub">One guided export moves your whole Confluence space onto a wiki you own. Images included. An integrity report checks every page and image against your source and names anything missing.</p>
+        <div class="cta-row">
+          <a class="btn" href="#opensource">Self-host free <svg aria-hidden="true" focusable="false" class="icon"><use href="#i-arrow"/></svg></a>
+          <a class="btn ghost" href="#how">See how it works</a>
+        </div>
+      </div>
+      <div class="herofig reveal">
+      <div class="gate" role="img" aria-label="Access gate demo. When the AI agent is asked for the 2026 compensation bands, Alice in HR gets the answer, but Bob in Engineering is blocked because he is not authorized. Every read is logged and tamper-evident.">
+        <span class="scan" aria-hidden="true"></span>
+        <div class="ghead"><span>Access Gate</span><span class="live"><i></i> enforcing</span></div>
+        <div class="query"><span class="q">The AI agent is asked</span>&ldquo;What are the 2026 compensation bands?&rdquo;</div>
+        <div class="grow">
+          <div class="actor"><b>Alice</b><span>HR</span></div>
+          <div class="verdict"><span class="res ok"><svg aria-hidden="true" focusable="false" class="icon"><use href="#i-checkcircle"/></svg> allowed</span><em>answer returned</em></div>
+        </div>
+        <div class="grow">
+          <div class="actor"><b>Bob</b><span>Engineering</span></div>
+          <div class="verdict"><span class="res no"><svg aria-hidden="true" focusable="false" class="icon"><use href="#i-xcircle"/></svg> blocked</span><em>not authorized</em></div>
+        </div>
+        <div class="gfoot"><svg aria-hidden="true" focusable="false" class="icon"><use href="#i-filecheck"/></svg> Every read is logged and tamper-evident</div>
+      </div>
+        <p class="gate-cap">Same AI, same question. Each person only sees what they are cleared for.</p>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- TRUST BAND -->
+<div class="trustband">
+  <div class="wrap">
+    <div class="row reveal">
+      <div class="it"><svg aria-hidden="true" focusable="false" class="icon"><use href="#i-check"/></svg> <b>Images come across</b></div>
+      <div class="it"><svg aria-hidden="true" focusable="false" class="icon"><use href="#i-check"/></svg> <b>Every page and image checked against your source</b></div>
+      <div class="it"><svg aria-hidden="true" focusable="false" class="icon"><use href="#i-check"/></svg> <b>A wiki you own, no lock-in</b></div>
+    </div>
+  </div>
+</div>
+
+<!-- PROBLEM -->
+<section id="problem">
+  <div class="wrap">
+    <div class="reveal">
+      <h2>Getting out of Confluence loses your stuff.</h2>
+      <p class="section-sub">Confluence got expensive, so you are leaving. But every export drops something, and you usually find out months later, when someone opens a page and the diagram is gone.</p>
+    </div>
+    <div class="plist stagger reveal">
+      <div class="prow">
+        <div class="ic"><svg aria-hidden="true" focusable="false" class="icon"><use href="#i-trend"/></svg></div>
+        <div><h3>Confluence costs too much</h3><p>Per-seat pricing that climbs every renewal, for features most of the team never touches.</p></div>
+      </div>
+      <div class="prow">
+        <div class="ic"><svg aria-hidden="true" focusable="false" class="icon"><use href="#i-archive"/></svg></div>
+        <div><h3>The images don't come across</h3><p>Every migration tool, even Atlassian's own, quietly drops images, flattens the page tree, and breaks permissions. Silent loss you can't prove or undo.</p></div>
+      </div>
+      <div class="prow">
+        <div class="ic"><svg aria-hidden="true" focusable="false" class="icon"><use href="#i-bot"/></svg></div>
+        <div><h3>Then you'll want AI on it</h3><p>Once it has moved, you'll point an AI assistant at it, and it can surface an HR file or board deck to the wrong person. Letwrites is ready for that too.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <div class="wrap">
+    <div class="reveal">
+      <span class="label">How it works</span>
+      <h2>From Confluence to safe, in four steps.</h2>
+      <p class="section-sub">Simple enough for your IT team to run in an afternoon. No vendor in the loop.</p>
+    </div>
+    <div class="steps">
+      <div class="step reveal">
+        <div class="n">1</div>
+        <div><h3>Deploy on your own domain</h3>
+          <p>One command stands up Letwrites on your server with automatic HTTPS. It runs on your infrastructure, and the content and the domain are yours.</p>
+          <div class="code"><button class="copy" data-copy="cd letwrites/wiki/deploy && cp .env.example .env && ./deploy.sh">copy</button><span class="c"># Caddy auto-TLS, wiki, permission engine, database</span>
+cd letwrites/wiki/deploy && cp .env.example .env   <span class="c"># set docs.yourcompany.com</span>
+./deploy.sh   <span class="o">→ https://docs.yourcompany.com</span></div>
+        </div>
+      </div>
+      <div class="step reveal">
+        <div class="n">2</div>
+        <div><h3>Bring everything over, images and all</h3>
+          <p>Click <b>“Export to HTML”</b> in Confluence, point Letwrites at the zip, and your whole space lands on your wiki: pages, structure, permissions, and the images other tools quietly drop. You get back a <b>migration integrity report</b> (every page and image in your source versus what actually landed, with anything missing named) so “nothing was lost” is provable, never a silent surprise.</p>
+          <div class="code"><button class="copy" data-copy="npm run import -- --from-confluence-export ./confluence-export">copy</button>npm run import -- --from-confluence-export ./confluence-export
+<span class="o">  MIGRATION INTEGRITY REPORT, complete</span>
+<span class="o">  Pages 412 of 412, images 1,038 of 1,038 moved, verdict COMPLETE</span></div>
+          <div class="tags"><span class="tag"><svg aria-hidden="true" focusable="false" class="icon"><use href="#i-check"/></svg>images come across</span><span class="tag"><svg aria-hidden="true" focusable="false" class="icon"><use href="#i-check"/></svg>page tree kept</span><span class="tag"><svg aria-hidden="true" focusable="false" class="icon"><use href="#i-check"/></svg>tables and code</span><span class="tag"><svg aria-hidden="true" focusable="false" class="icon"><use href="#i-check"/></svg>source checked, nothing lost</span></div>
+        </div>
+      </div>
+      <div class="step reveal">
+        <div class="n">3</div>
+        <div><h3>Your IT team controls access</h3>
+          <p>Admins create roles (HR, Security, Engineering) and set who can see each shelf, book, or page, down to a single doc. This one permission model is the source of truth, and it governs both people <em>and</em> AI agents. Set access once, it covers everything.</p>
+          <div class="tags"><span class="tag"><svg aria-hidden="true" focusable="false" class="icon"><use href="#i-check"/></svg>Roles and groups</span><span class="tag"><svg aria-hidden="true" focusable="false" class="icon"><use href="#i-check"/></svg>Per-page permissions</span><span class="tag"><svg aria-hidden="true" focusable="false" class="icon"><use href="#i-check"/></svg>SSO included (OIDC, SAML, LDAP)</span><span class="tag"><svg aria-hidden="true" focusable="false" class="icon"><use href="#i-check"/></svg>Instant revocation</span></div>
+        </div>
+      </div>
+      <div class="step reveal">
+        <div class="n">4</div>
+        <div><h3>Agents read safely, and audited</h3>
+          <p>Connect an AI agent and every read is checked against the exact permissions your IT set, then written to a tamper-evident log of who, and which agent, accessed what. The agent is treated as untrusted, so it cannot return a document the person asking isn't cleared for. The permission engine and audit are in the free core today. The connector that plugs your agent in is the layer we build with our first customers.</p>
+          <div class="tags"><span class="tag"><svg aria-hidden="true" focusable="false" class="icon"><use href="#i-check"/></svg>Permission-enforced</span><span class="tag"><svg aria-hidden="true" focusable="false" class="icon"><use href="#i-check"/></svg>Bring your own agent</span><span class="tag"><svg aria-hidden="true" focusable="false" class="icon"><use href="#i-check"/></svg>Tamper-evident audit</span><span class="tag"><svg aria-hidden="true" focusable="false" class="icon"><use href="#i-check"/></svg>Fail-closed</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="cta-row reveal" style="margin-top:40px;align-items:center">
+      <a class="btn" href="onboard.html">See the full onboarding guide <svg aria-hidden="true" focusable="false" class="icon"><use href="#i-arrow"/></svg></a>
+      <a class="btn ghost" href="onboard.html"><svg aria-hidden="true" focusable="false" class="icon"><use href="#i-terminal"/></svg> Or hand one prompt to your agent</a>
+    </div>
+  </div>
+</section>
+
+<!-- WHY -->
+<section id="why">
+  <div class="wrap">
+    <div class="reveal">
+      <h2>Same AI. Same question. Different access.</h2>
+      <p class="section-sub">An agent answers over your wiki, but only ever from what the person asking is allowed to see.</p>
+    </div>
+    <div class="split2 reveal">
+      <div class="who allow">
+        <div class="h"><span class="name">Alice</span><span class="role">HR</span></div>
+        <div class="ans">"What are the 2026 comp bands and the on-call policy?"<br><br>→ On-call Policy: …<br>→ <b>Compensation Bands 2026: L5 150k to 200k…</b></div>
+        <div class="verdict"><svg aria-hidden="true" focusable="false" class="icon"><use href="#i-checkcircle"/></svg> Sees both, she's authorized</div>
+      </div>
+      <div class="who deny">
+        <div class="h"><span class="name">Bob</span><span class="role">Engineering</span></div>
+        <div class="ans">"What are the 2026 comp bands and the on-call policy?"<br><br>→ On-call Policy: …<br><br>(1 document withheld, not authorized)</div>
+        <div class="verdict"><svg aria-hidden="true" focusable="false" class="icon"><use href="#i-xcircle"/></svg> Comp blocked, not even the title leaks</div>
+      </div>
+    </div>
+    <p class="auditline reveal">And every access is logged, tamper-evident: <code>verify → {"valid":true}</code>. Edit the log to hide an access and it flips to <code>{"valid":false}</code>.</p>
+  </div>
+</section>
+
+<!-- OPEN SOURCE -->
+<section id="opensource">
+  <div class="wrap">
+    <div class="oss reveal">
+      <span class="badge"><svg aria-hidden="true" focusable="false" class="icon"><use href="#i-check"/></svg> Free forever, Apache-2.0, self-hosted</span>
+      <h2>Build your own. <span class="accent-text">It's open source.</span></h2>
+      <p class="section-sub" style="max-width:68ch">The core is free and yours to run: the wiki, the Confluence migration, permission-safe agent access, and an audit log. Pull the image, point a domain, and you have a production Letwrites on your servers. No account, no purchase order, no data leaving your walls.</p>
+      <div class="cmd reveal" style="margin:32px 0 0;max-width:720px">
+        <div class="head">
+          <span class="ttl"><svg aria-hidden="true" focusable="false" class="icon"><use href="#i-terminal"/></svg> Self-host</span>
+          <button class="copy" data-copy="git clone https://github.com/Lynne-ang/letwrites && cd letwrites/wiki/deploy && docker compose up -d">copy</button>
+        </div>
+        <pre><span class="c"># clone, set your domain, and bring it up</span>
+<span class="p">$</span> git clone https://github.com/Lynne-ang/letwrites && cd letwrites/wiki/deploy
+<span class="p">$</span> docker compose up -d
+<span class="o">wiki, permission engine, and database, behind auto-HTTPS</span></pre>
+      </div>
+      <div class="cta-row" style="margin-top:30px">
+        <a class="btn" href="onboard.html">Onboarding guide <svg aria-hidden="true" focusable="false" class="icon"><use href="#i-arrow"/></svg></a>
+        <a class="btn ghost" href="https://github.com/Lynne-ang/letwrites"><svg aria-hidden="true" focusable="false" class="icon"><use href="#i-star"/></svg> View on GitHub</a>
+        <a class="btn ghost" href="#pricing">Compare editions</a>
+      </div>
+      <p class="muted" style="margin-top:20px;font-size:14px;max-width:72ch">SSO (OIDC, SAML, LDAP) is included free. Need the governance dashboard, more connectors, managed agent access, or hosting? Those are paid add-ons, but the core stays free and your data stays on your servers. <a class="accent-text" href="#pricing">See pricing →</a></p>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="wrap">
+    <div class="reveal">
+      <h2>A wiki that's also a security layer.</h2>
+    </div>
+    <div class="bento stagger reveal">
+      <div class="cell lead">
+        <div>
+          <div class="chip"><svg aria-hidden="true" focusable="false" class="icon"><use href="#i-lock"/></svg></div>
+          <h3>Permission-safe agent access</h3>
+          <p>Agents enforce your existing permissions on every read. The agent is treated as untrusted, so it can't be tricked into leaking a document the person asking isn't cleared for.</p>
+        </div>
+        <div class="mini"><span class="c"># same query, two people</span>
+Alice (HR)  <span class="allow">→ comp bands returned</span>
+Bob (Eng)   <span class="deny">→ withheld, not authorized</span></div>
+      </div>
+      <div class="cell wide">
+        <div class="chip"><svg aria-hidden="true" focusable="false" class="icon"><use href="#i-package"/></svg></div>
+        <h3>Honest migration</h3>
+        <p>Confluence to your wiki: text, code, images, tables, hierarchy, links. A report lists exactly what needs a human.</p>
+      </div>
+      <div class="cell wide tint">
+        <div class="chip"><svg aria-hidden="true" focusable="false" class="icon"><use href="#i-filecheck"/></svg></div>
+        <h3>Tamper-evident audit</h3>
+        <p>Hash-chained log of every allowed and denied access. Edit it and verification breaks, provably.</p>
+      </div>
+      <div class="cell">
+        <div class="chip"><svg aria-hidden="true" focusable="false" class="icon"><use href="#i-server"/></svg></div>
+        <h3>Self-hosted</h3>
+        <p>Runs on your servers, your domain. Content never touches a vendor's cloud. The whole point.</p>
+      </div>
+      <div class="cell tint">
+        <div class="chip"><svg aria-hidden="true" focusable="false" class="icon"><use href="#i-plug"/></svg></div>
+        <h3>Vendor-neutral</h3>
+        <p>Works with Claude, Copilot, Cursor, internal bots, any agent. Not locked to one AI vendor.</p>
+      </div>
+      <div class="cell">
+        <div class="chip"><svg aria-hidden="true" focusable="false" class="icon"><use href="#i-users"/></svg></div>
+        <h3>IT in full control</h3>
+        <p>Roles and per-page permissions, managed in one place, governing both humans and AI.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing">
+  <div class="wrap">
+    <div class="reveal" style="text-align:center">
+      <span class="label">Pricing</span>
+      <h2 style="margin:0 auto">Free to self-host. Pay for the enterprise layer.</h2>
+      <p class="section-sub" style="margin:16px auto 0">Open-core: the core, including SSO, is free forever. Governance, connectors, and managed agent access unlock on a subscription, and even then you still self-host and your data still stays on your servers.</p>
+    </div>
+    <div class="price-grid stagger reveal">
+      <div class="price">
+        <div class="tier">Community</div>
+        <div class="amt">$0<small> / forever</small></div>
+        <div class="blurb">Self-hosted, open source. Everything you need to leave Confluence.</div>
+        <ul>
+          <li><svg aria-hidden="true" focusable="false" class="icon ck"><use href="#i-check"/></svg> The wiki, unlimited users and pages</li>
+          <li><svg aria-hidden="true" focusable="false" class="icon ck"><use href="#i-check"/></svg> SSO included: Google, Okta, SAML, LDAP</li>
+          <li><svg aria-hidden="true" focusable="false" class="icon ck"><use href="#i-check"/></svg> Roles and per-page permissions</li>
+          <li><svg aria-hidden="true" focusable="false" class="icon ck"><use href="#i-check"/></svg> Confluence to Letwrites migration</li>
+          <li><svg aria-hidden="true" focusable="false" class="icon ck"><use href="#i-check"/></svg> Permission-safe agent access and audit log</li>
+          <li><svg aria-hidden="true" focusable="false" class="icon ck"><use href="#i-check"/></svg> Self-host on your domain (Docker)</li>
+        </ul>
+        <a class="btn ghost" href="#opensource">Self-host free</a>
+      </div>
+      <div class="price feat">
+        <span class="ribbon">Most popular</span>
+        <div class="tier">Team</div>
+        <div class="amt">$6<small> / user / mo</small></div>
+        <div class="blurb">For teams that want governance, more sources, and managed agent access. Still self-hosted.</div>
+        <ul>
+          <li><svg aria-hidden="true" focusable="false" class="icon ck"><use href="#i-check"/></svg> Everything in Community (incl. SSO)</li>
+          <li><svg aria-hidden="true" focusable="false" class="icon lk"><use href="#i-lock"/></svg> CISO governance dashboard</li>
+          <li><svg aria-hidden="true" focusable="false" class="icon lk"><use href="#i-lock"/></svg> Connectors: Drive, SharePoint, Slack, Jira, Notion</li>
+          <li><svg aria-hidden="true" focusable="false" class="icon lk"><use href="#i-lock"/></svg> Managed agent gateway (hosted MCP, multi-agent)</li>
+          <li><svg aria-hidden="true" focusable="false" class="icon lk"><use href="#i-lock"/></svg> Advanced audit: retention and SIEM export</li>
+          <li><svg aria-hidden="true" focusable="false" class="icon lk"><use href="#i-lock"/></svg> Email support</li>
+        </ul>
+        <a class="btn" href="#contact">Talk to us <svg aria-hidden="true" focusable="false" class="icon"><use href="#i-arrow"/></svg></a>
+      </div>
+      <div class="price">
+        <div class="tier">Enterprise</div>
+        <div class="amt">Custom</div>
+        <div class="blurb">For regulated orgs. Lifecycle automation, agentic at scale, and an SLA.</div>
+        <ul>
+          <li><svg aria-hidden="true" focusable="false" class="icon ck"><use href="#i-check"/></svg> Everything in Team</li>
+          <li><svg aria-hidden="true" focusable="false" class="icon lk"><use href="#i-lock"/></svg> SCIM auto-provision and instant de-provision</li>
+          <li><svg aria-hidden="true" focusable="false" class="icon lk"><use href="#i-lock"/></svg> Agent-identity OAuth binding and usage analytics</li>
+          <li><svg aria-hidden="true" focusable="false" class="icon lk"><use href="#i-lock"/></svg> Tamper-proof (WORM) audit and compliance reports</li>
+          <li><svg aria-hidden="true" focusable="false" class="icon lk"><use href="#i-lock"/></svg> Managed hosting (optional) and SLA</li>
+          <li><svg aria-hidden="true" focusable="false" class="icon lk"><use href="#i-lock"/></svg> Security-review assistance</li>
+        </ul>
+        <a class="btn ghost" href="#contact">Talk to us</a>
+      </div>
+    </div>
+    <p class="price-note">Prices are illustrative and billed per active user, annually. Community edition is free under Apache-2.0, forever, no seat limits.</p>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq">
+  <div class="wrap">
+    <div class="reveal" style="text-align:center">
+      <h2 style="margin:0 auto">The things IT and security ask first.</h2>
+    </div>
+    <div class="faq reveal">
+      <details open><summary>Is it really free? <svg aria-hidden="true" focusable="false" class="icon"><use href="#i-plus"/></svg></summary><div class="a">Yes. The Community edition is open source (Apache-2.0) and free forever, with no seat limits. You self-host it. You only pay if you want the governance dashboard, extra connectors, managed agent access, or hosting, and even then you keep self-hosting and your data stays on your servers.</div></details>
+      <details><summary>Do we have to pay for SSO? <svg aria-hidden="true" focusable="false" class="icon"><use href="#i-plus"/></svg></summary><div class="a">No, SSO is included in the free Community edition. Log in with Google, Okta, Azure AD, any SAML 2.0 or OIDC provider, or LDAP. What's paid is the <em>governance</em> around identity: automated SCIM provisioning and instant de-provisioning when someone leaves (Enterprise), plus the access-review dashboard (Team). The login itself is free.</div></details>
+      <details><summary>Where does our data live? <svg aria-hidden="true" focusable="false" class="icon"><use href="#i-plus"/></svg></summary><div class="a">On your servers, on your domain. Letwrites is self-hosted by design, so your knowledge never touches our cloud. That's the core difference from Glean, Notion, or Confluence Cloud.</div></details>
+      <details><summary>Can our IT team control who sees what? <svg aria-hidden="true" focusable="false" class="icon"><use href="#i-plus"/></svg></summary><div class="a">Completely. IT are the admins. They define roles and set permissions down to a single page. That one permission model governs both human browsing and AI agent reads, so you set access once and it covers everything. Revoking access takes effect on the next read.</div></details>
+      <details><summary>Which AI agents does it work with? <svg aria-hidden="true" focusable="false" class="icon"><use href="#i-plus"/></svg></summary><div class="a">Any of them. Letwrites is vendor-neutral: Claude, Copilot, Cursor, or your own internal agents connect through a standard interface. We're the safe knowledge layer, not another AI vendor.</div></details>
+      <details><summary>How do you prove the audit log wasn't tampered with? <svg aria-hidden="true" focusable="false" class="icon"><use href="#i-plus"/></svg></summary><div class="a">Every record is hash-chained to the one before it. A built-in verify check re-walks the chain, and if anyone edits, deletes, or reorders a record, verification fails and points to the broken entry. Tamper-evident on every edition, tamper-proof (WORM) on Enterprise.</div></details>
+      <details><summary>How clean is the Confluence migration? <svg aria-hidden="true" focusable="false" class="icon"><use href="#i-plus"/></svg></summary><div class="a">Text, headings, lists, code blocks, tables, images, and cross-page links convert cleanly and hierarchy is preserved. Confluence-specific macros (Jira, drawio, and the like) can't be auto-converted, so we list every one in a migration report with its page, for a human to handle. We never silently mangle.</div></details>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL -->
+<section id="contact" class="final">
+  <div class="wrap">
+    <div class="box reveal">
+      <h2>Run it against one Confluence space.</h2>
+      <p class="section-sub" style="margin:16px auto 32px">See the migration. Watch an agent get blocked from a doc it shouldn't see. Read the audit log. Then decide. It's free to try on your own server.</p>
+      <div class="cta-row" style="justify-content:center">
+        <a class="btn" href="#opensource">Self-host free <svg aria-hidden="true" focusable="false" class="icon"><use href="#i-arrow"/></svg></a>
+        <a class="btn ghost" href="mailto:hello@letwrites.com">Talk to us</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div>
+      <a class="logo" href="#top" style="font-size:17px"><img class="mark" src="/apple-touch-icon.png" alt="Letwrites logo" width="30" height="30" decoding="async" /> Letwrites</a>
+      <p class="muted" style="margin-top:12px;max-width:280px;font-size:13.5px">The complete, self-hosted Confluence exit, images and all. Open source, your domain.</p>
+    </div>
+    <div class="cols">
+      <div class="col"><h4>Product</h4><a href="#how">How it works</a><a href="#why">Why Letwrites</a><a href="#pricing">Pricing</a><a href="#faq">FAQ</a></div>
+      <div class="col"><h4>Open source</h4><a href="#opensource">Self-host</a><a href="https://github.com/Lynne-ang/letwrites">GitHub</a><a href="onboard.html">Onboarding</a><a href="https://github.com/Lynne-ang/letwrites/blob/main/LICENSE">License (Apache-2.0)</a></div>
+      <div class="col"><h4>Company</h4><a href="mailto:hello@letwrites.com">Contact</a><a href="mailto:hello@letwrites.com">Security</a><a href="https://github.com/Lynne-ang/letwrites/issues">Issues</a></div>
+      <div class="col"><h4>Legal</h4><a href="terms.html">Terms of Service</a><a href="privacy.html">Privacy Policy</a></div>
+    </div>
+  </div>
+  <div class="wrap" style="margin-top:36px;padding-top:24px;border-top:1px solid var(--border);display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;color:var(--faint);font-size:13px">
+    <span>© 2026 Letwrites. Software open source under Apache-2.0.</span>
+    <span>Self-hosted. Your data never leaves your walls. <a class="accent-text" href="mailto:hello@letwrites.com">hello@letwrites.com</a></span>
+  </div>
+</footer>
+
+<script>
+  // copy-to-clipboard, no dependencies
+  document.querySelectorAll('.copy').forEach(function(b){
+    b.addEventListener('click',function(){
+      navigator.clipboard.writeText(b.getAttribute('data-copy')).then(function(){
+        var t=b.textContent;b.textContent='copied';setTimeout(function(){b.textContent=t;},1400);
+      });
+    });
+  });
+  // scroll-reveal animations
+  var io=new IntersectionObserver(function(entries){
+    entries.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+  },{threshold:.12,rootMargin:'0px 0px -8% 0px'});
+  document.querySelectorAll('.reveal').forEach(function(el){io.observe(el);});
+</script>
+</body>
+</html>

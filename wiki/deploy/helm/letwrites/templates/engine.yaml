@@ -1,0 +1,89 @@
+{{- if .Values.engine.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "letwrites.fullname" . }}-engine-audit
+  labels: {{- include "letwrites.labels" . | nindent 4 }}
+spec:
+  accessModes: ["ReadWriteOnce"]
+  {{- if .Values.engine.storageClass }}
+  storageClassName: {{ .Values.engine.storageClass | quote }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.engine.auditStorage | quote }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "letwrites.fullname" . }}-engine
+  labels: {{- include "letwrites.labels" . | nindent 4 }}
+spec:
+  # ClusterIP only — the engine is internal. NEVER put it behind the Ingress.
+  selector:
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    letwrites.component: engine
+  ports:
+    - port: 8787
+      targetPort: 8787
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "letwrites.fullname" . }}-engine
+  labels: {{- include "letwrites.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.engine.replicas }}
+  strategy:
+    type: Recreate   # single RWO audit volume
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      letwrites.component: engine
+  template:
+    metadata:
+      labels:
+        {{- include "letwrites.labels" . | nindent 8 }}
+        letwrites.component: engine
+    spec:
+      # The engine image already runs as the non-root `node` user; enforce + harden it.
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: engine
+          image: {{ include "letwrites.engineImage" . | quote }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          env:
+            - name: PORT
+              value: "8787"
+            - name: BOOKSTACK_URL
+              value: "http://{{ include "letwrites.fullname" . }}-bookstack:80"
+            - name: LETWRITES_AUDIT_FILE
+              value: /app/data/audit/audit.jsonl
+            - name: LETWRITES_AUTHZ_SECRET
+              valueFrom: { secretKeyRef: { name: {{ include "letwrites.secretName" . }}, key: LETWRITES_AUTHZ_SECRET } }
+            - name: LETWRITES_ENGINE_SECRET
+              valueFrom: { secretKeyRef: { name: {{ include "letwrites.secretName" . }}, key: LETWRITES_ENGINE_SECRET } }
+            - name: BOOKSTACK_TOKEN_ID
+              valueFrom: { secretKeyRef: { name: {{ include "letwrites.secretName" . }}, key: BOOKSTACK_TOKEN_ID } }
+            - name: BOOKSTACK_TOKEN_SECRET
+              valueFrom: { secretKeyRef: { name: {{ include "letwrites.secretName" . }}, key: BOOKSTACK_TOKEN_SECRET } }
+          ports:
+            - containerPort: 8787
+          readinessProbe:
+            httpGet: { path: /health, port: 8787 }
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          volumeMounts:
+            - name: audit
+              mountPath: /app/data/audit
+      volumes:
+        - name: audit
+          persistentVolumeClaim:
+            claimName: {{ include "letwrites.fullname" . }}-engine-audit
+{{- end }}

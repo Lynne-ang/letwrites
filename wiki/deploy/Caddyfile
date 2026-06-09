@@ -1,0 +1,14 @@
+# Automatic HTTPS for Letwrites. Caddy provisions + renews a Let's Encrypt cert for
+# LETWRITES_DOMAIN as long as the domain's DNS A record points at this server and
+# ports 80/443 are open.
+{
+	email {$LETWRITES_ACME_EMAIL}
+}
+
+{$LETWRITES_DOMAIN} {
+	encode gzip
+	reverse_proxy bookstack:80
+}
+
+# Local testing without a public domain: set LETWRITES_DOMAIN=localhost in .env —
+# Caddy will serve an internal self-signed cert on https://localhost.

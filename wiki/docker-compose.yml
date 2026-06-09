@@ -1,0 +1,62 @@
+# Letwrites connector #1 — BookStack (the wiki / authoritative permission source).
+#
+# We do NOT fork BookStack. The Letwrites authz endpoint is added via BookStack's
+# supported "logical theme" system (themes/letwrites/functions.php), mounted into
+# the stock image. No core changes, no merge debt.
+#
+#   stand up:   cp .env.example .env  &&  edit secrets  &&  docker compose up -d
+#   open:       http://localhost:6875   (default login: admin@admin.com / password)
+#
+# DB note: we use the official mariadb image with a healthcheck and make BookStack
+# wait for `service_healthy`. This avoids the first-boot migration race where the
+# DB restarts mid-migration.
+services:
+  bookstack_db:
+    # MySQL 8 or MariaDB 10.6+ both work; official mariadb is BookStack-recommended.
+    # (On Apple-Silicon LOCAL dev, the DB image can crash during migration — an ARM
+    # emulation issue, not a config bug; on x86 VMs / Cloud SQL this is solid.)
+    image: mariadb:11.4
+    container_name: letwrites_bookstack_db
+    environment:
+      - MARIADB_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
+      - MARIADB_DATABASE=bookstackapp
+      - MARIADB_USER=bookstack
+      - MARIADB_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - ./data/db:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 40s
+    restart: unless-stopped
+
+  bookstack:
+    image: lscr.io/linuxserver/bookstack:latest
+    container_name: letwrites_bookstack
+    depends_on:
+      bookstack_db:
+        condition: service_healthy
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=UTC
+      - APP_URL=${APP_URL}
+      - APP_NAME=Letwrites          # brands the wiki as Letwrites (header + page titles)
+      - APP_KEY=${APP_KEY}          # generate: docker run -it --rm --entrypoint /bin/bash lscr.io/linuxserver/bookstack -c "php artisan key:generate --show"
+      - DB_HOST=bookstack_db
+      - DB_PORT=3306
+      - DB_USERNAME=bookstack
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_DATABASE=bookstackapp
+      - APP_THEME=letwrites         # activates themes/letwrites/functions.php (the authz endpoint)
+      # Shared secret the Letwrites engine must present to call the authz endpoint.
+      # Read inside functions.php via env('LETWRITES_AUTHZ_SECRET').
+      - LETWRITES_AUTHZ_SECRET=${LETWRITES_AUTHZ_SECRET}
+    volumes:
+      - ./data/config:/config
+      - ./themes/letwrites:/app/www/themes/letwrites:ro
+    ports:
+      - "6875:80"
+    restart: unless-stopped
