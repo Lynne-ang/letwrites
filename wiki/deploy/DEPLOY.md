@@ -181,16 +181,32 @@ helm install letwrites wiki/deploy/helm/letwrites \
   registration off → API token → run the `letwrites-migrate` image).
 - The engine has **no Ingress path** by design; reach it in-cluster, behind the future gateway.
 
+**Hardening for a security review:**
+- **Secrets:** the `--set secrets.*` above is for quick start, but it lands in shell history
+  and Helm release history. For production, pre-create the Secret and set
+  `secrets.existingSecret`, or use an external-secrets/sealed-secrets operator.
+- **Network isolation:** set `networkPolicy.enabled=true` to restrict the engine and DB so
+  only in-release pods can reach them (egress stays open so SSO/SMTP/S3 work). Needs a CNI
+  that enforces NetworkPolicy.
+- **Resource limits** are set on every container (tune `*.resources` in values). A
+  `seccompProfile: RuntimeDefault` is applied to all pods; the engine additionally runs
+  non-root with `allowPrivilegeEscalation: false` and all capabilities dropped (BookStack and
+  MariaDB keep root only because their init requires it).
+- **Image pinning:** pin `imageTag` and `mariadb.image` to a digest for reproducible,
+  supply-chain-safe deploys before production.
+
 ## Authentication & SSO (LDAP, SAML, OIDC)
 
 Letwrites runs **unmodified BookStack** for auth, so every method in the BookStack docs
 works as written, free: LDAP/Active Directory, SAML 2.0, OIDC (Google, Okta, Azure AD),
 and standard email login. Our theme and engine do not touch authentication.
 
-Enabling it is just environment variables, no code. The compose stack passes `.env`
-through to BookStack, so you uncomment the block in `.env` and restart:
+Enabling it is just environment variables, no code. Put them in `bookstack.env` (copy
+`bookstack.env.example`), a file scoped to the BookStack container so the DB-root and
+engine secrets are never exposed to it, then restart:
 ```bash
-# in .env:  AUTH_METHOD=ldap + LDAP_SERVER / LDAP_BASE_DN / LDAP_DN / LDAP_PASS / LDAP_USER_FILTER
+cp bookstack.env.example bookstack.env
+# uncomment AUTH_METHOD=ldap + LDAP_SERVER / LDAP_BASE_DN / LDAP_DN / LDAP_PASS / LDAP_USER_FILTER
 docker compose up -d bookstack
 ```
 On Kubernetes, set the same vars under `bookstack.extraEnv` in the Helm values (an example
@@ -201,7 +217,7 @@ is in `values.yaml`). Full reference: https://www.bookstackapp.com/docs/admin/ld
 
 The "admin invites your team" flow sends email, so it needs SMTP. Without it, an admin can
 still create accounts by hand, but emailed invites, password resets, and notifications stay
-off. Set `MAIL_*` in `.env` (there's a ready block) and restart:
+off. Set `MAIL_*` in `bookstack.env` (there's a ready block) and restart:
 ```bash
 docker compose up -d bookstack   # on K8s: same vars under bookstack.extraEnv
 ```
@@ -215,7 +231,7 @@ it for everyone or just for admins. For a security tool this is worth turning on
 
 ## Scale, storage, and other knobs
 
-All of these are BookStack settings that pass through `.env` (or `bookstack.extraEnv` on
+All of these are BookStack settings that go in `bookstack.env` (or `bookstack.extraEnv` on
 K8s). Defaults are fine for a single box; reach for these as you grow:
 - **Object storage:** `STORAGE_TYPE=s3` + `STORAGE_S3_*` to keep uploads on S3 instead of disk.
 - **Upload limit:** `FILE_UPLOAD_SIZE_LIMIT` (MB).

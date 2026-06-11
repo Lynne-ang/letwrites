@@ -7,6 +7,15 @@
 
 {$LETWRITES_DOMAIN} {
 	encode gzip
+	# Self-service Confluence import service. The in-wiki page at /letwrites/import (served by
+	# BookStack, signed-in only) loads the shared UI asset from here (/import/ui.js) and uploads
+	# straight to /import/run — so big exports never buffer through PHP. Front with your SSO/IdP;
+	# the import also requires the user's own BookStack API token, so it can't exceed their access.
+	handle /import* {
+		reverse_proxy letwrites_import:8088
+	}
+	# (Sharing is in-wiki now: the theme's /letwrites/share-* routes go to BookStack below. The old
+	# standalone /share page was removed.)
 	reverse_proxy bookstack:80
 }
 

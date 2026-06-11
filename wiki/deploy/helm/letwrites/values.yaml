@@ -27,6 +27,10 @@ bookstack:
   #   - { name: LDAP_PASS, valueFrom: { secretKeyRef: { name: my-ldap-secret, key: pass } } }
   #   - { name: LDAP_USER_FILTER, value: "(&(uid={user}))" }
   extraEnv: []
+  # Generous defaults; tune for your load. Limits prevent a runaway pod starving the node.
+  resources:
+    requests: { cpu: 250m, memory: 512Mi }
+    limits:   { cpu: "1",  memory: 1Gi }
 
 engine:
   enabled: true
@@ -34,6 +38,9 @@ engine:
   replicas: 1
   auditStorage: 1Gi         # durable, tamper-evident audit log (ReadWriteOnce)
   storageClass: ""
+  resources:
+    requests: { cpu: 50m, memory: 64Mi }
+    limits:   { cpu: 500m, memory: 256Mi }
 
 mariadb:
   image: mariadb:11.4
@@ -41,6 +48,9 @@ mariadb:
   storageClass: ""
   database: bookstackapp
   user: bookstack
+  resources:
+    requests: { cpu: 250m, memory: 512Mi }
+    limits:   { cpu: "1",  memory: 1Gi }
 
 # Expose the wiki. Works with any Ingress controller (nginx, traefik, ...).
 ingress:
@@ -50,6 +60,13 @@ ingress:
   tls:
     enabled: true
     secretName: letwrites-tls
+
+# Opt-in network isolation. When true, restricts who can reach the engine and the DB to
+# pods in THIS release (egress stays open so SSO/SMTP/S3 still work). Off by default because
+# it only has effect on clusters whose CNI enforces NetworkPolicy and may need tuning for a
+# split-out gateway. A security team should turn this on.
+networkPolicy:
+  enabled: false
 
 # Secrets. Either fill these (generate: openssl rand -hex 24; APP_KEY: see NOTES) or set
 # secrets.existingSecret to the name of a Secret you created with the same keys.

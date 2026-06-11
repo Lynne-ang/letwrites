@@ -41,9 +41,13 @@ set_secret DB_PASSWORD         "$(openssl rand -hex 24)"
 set_secret LETWRITES_AUTHZ_SECRET "$(openssl rand -hex 32)"
 set_secret LETWRITES_ENGINE_SECRET "$(openssl rand -hex 32)"
 
-# 3. Sanity-check the required, human-set values.
-set -a; . ./.env; set +a
-if [[ "${LETWRITES_DOMAIN:-}" == "docs.yourcompany.com" || -z "${LETWRITES_DOMAIN:-}" ]]; then
+# 3. Sanity-check the required, human-set values. Read .env values WITHOUT sourcing it:
+#    `. ./.env` EXECUTES the file, so a perfectly valid value with shell metacharacters — e.g.
+#    an LDAP filter like LDAP_USER_FILTER=(&(uid={user})) — would crash the script with a syntax
+#    error. docker-compose reads .env literally; we do the same with a plain key lookup.
+env_val() { grep -E "^$1=" .env | tail -n1 | cut -d= -f2-; }
+LETWRITES_DOMAIN="$(env_val LETWRITES_DOMAIN)"
+if [[ "$LETWRITES_DOMAIN" == "docs.yourcompany.com" || -z "$LETWRITES_DOMAIN" ]]; then
   echo "ERROR: set LETWRITES_DOMAIN in .env to your real domain first." >&2
   exit 1
 fi

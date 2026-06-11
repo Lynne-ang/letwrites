@@ -1,0 +1,12 @@
+{
+  "_comment": "CONTRACT FIXTURE. The PHP theme mint (letwrites/wiki/themes/letwrites/lib/assertion.php) and the Node broker (letwrites-enterprise/src/share/assertion.ts) MUST both produce this exact token. If you change the canonical signed-string format or the encoding on EITHER side, this vector breaks and BOTH repos' tests fail. Do NOT 'fix' it by editing the vector — fix the code so both sides agree again. This file is duplicated byte-for-byte in both repos.",
+  "secret": "letwrites-contract-test-secret",
+  "userId": "7",
+  "action": "set-visibility",
+  "entityType": "page",
+  "entityId": 42,
+  "exp": 1900000000,
+  "nonce": "aabbccddeeff001122334455",
+  "signedString": "v1|7|set-visibility|page|42|1900000000|aabbccddeeff001122334455",
+  "token": "djF8N3xzZXQtdmlzaWJpbGl0eXxwYWdlfDQyfDE5MDAwMDAwMDB8YWFiYmNjZGRlZWZmMDAxMTIyMzM0NDU1.nSA1ZVjnkhokNryccBs6CiiwlFhC6Q9GJIT16Ce5Iqw"
+}

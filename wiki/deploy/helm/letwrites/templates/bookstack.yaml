@@ -44,9 +44,15 @@ spec:
         {{- include "letwrites.labels" . | nindent 8 }}
         letwrites.component: bookstack
     spec:
+      # seccompProfile is safe for the LinuxServer image; runAsNonRoot / dropping caps is
+      # NOT set here because its s6 init needs root to drop to PUID/PGID.
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: bookstack
           image: {{ include "letwrites.bookstackImage" . | quote }}
+          resources: {{- toYaml .Values.bookstack.resources | nindent 12 }}
           env:
             - name: PUID
               value: {{ .Values.bookstack.puid | quote }}

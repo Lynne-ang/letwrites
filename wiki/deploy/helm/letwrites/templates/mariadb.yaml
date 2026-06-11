@@ -30,10 +30,14 @@ spec:
         {{- include "letwrites.labels" . | nindent 8 }}
         letwrites.component: db
     spec:
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: mariadb
           image: {{ .Values.mariadb.image | quote }}
           args: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci"]  # full unicode + emoji
+          resources: {{- toYaml .Values.mariadb.resources | nindent 12 }}
           env:
             - name: TZ
               value: {{ .Values.bookstack.tz | quote }}

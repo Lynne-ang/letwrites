@@ -54,6 +54,7 @@ spec:
       containers:
         - name: engine
           image: {{ include "letwrites.engineImage" . | quote }}
+          resources: {{- toYaml .Values.engine.resources | nindent 12 }}
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:

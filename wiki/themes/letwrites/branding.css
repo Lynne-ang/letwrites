@@ -8,7 +8,16 @@
   consistent and correct. This file only adds a modern font and softer card corners —
   no header recolor, no ::after wordmark, no link/button/dropdown overrides (those
   caused contrast + alignment bugs because they can't be visually verified blind).
+
+  Favicon: replace BookStack's default stacked-books mark with the Letwrites "L". This is plain head
+  HTML (custom-head content allows it), injected AFTER BookStack's own favicon links. BookStack emits
+  SIZED links (<link rel=icon sizes="256x256"…"32x32" href="/icon-*.png">); a browser picks the icon
+  whose size best matches the tab, so an UNSIZED override is ignored and BookStack's default wins. We
+  therefore declare the SAME sizes here — same size + later in <head> = our link wins per size.
+  Self-contained data URI: no dependency on a served file/mount (the old /letwrites-logo.png path 404d).
 -->
+<link rel="icon" type="image/png" sizes="16x16 32x32 48x48 64x64 128x128 180x180 256x256" href="data:image/png;base64,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">
+<link rel="apple-touch-icon" sizes="180x180" href="data:image/png;base64,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">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 body, .page-content, input, select, textarea, button, .button {
@@ -17,4 +26,115 @@ body, .page-content, input, select, textarea, button, .button {
 }
 /* softer, modern corners — purely cosmetic, cannot affect contrast or layout */
 .card, .content-wrap, .grid-card { border-radius: 12px !important; }
+/* Header brand mark. BookStack wraps app-logo in url() (so a data-URI <img> becomes
+   https://host/data:… and 404s) and a relative /import/logo.png needs Caddy routing. So we set
+   app-logo='none' (no <img>) and paint the Letwrites "L" here as a white tile before the wordmark —
+   matches the website header, self-contained (CSS url() DOES accept data URIs), no served file. The
+   seed also extracts THIS data URI to set app-icon-* (the favicon), so the mark lives in one place. */
+header a.logo::before{content:"";display:inline-block;width:30px;height:30px;margin-right:10px;border-radius:8px;vertical-align:middle;background:#fff url(data:image/png;base64,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) center/20px 20px no-repeat;}
+/* self-service sharing control */
+#lw-share-btn{position:fixed;right:18px;bottom:18px;z-index:9998;background:#2f6bff;color:#fff;border:0;border-radius:24px;padding:10px 16px;font:600 13px/1 inherit;box-shadow:0 4px 14px rgba(0,0,0,.18);cursor:pointer}
+#lw-share-ov{position:fixed;inset:0;z-index:9999;background:rgba(11,18,32,.45);display:none;align-items:center;justify-content:center}
+#lw-share-ov.on{display:flex}
+#lw-share-modal{background:#fff;color:#0b1220;border-radius:14px;max-width:460px;width:92%;padding:22px;font:14px/1.5 inherit}
+#lw-share-modal h3{font-size:17px;margin:0 0 4px} #lw-share-modal .sub{color:#5b6678;font-size:13px;margin-bottom:14px}
+#lw-share-modal label{display:flex;gap:8px;align-items:center;margin:8px 0;font-weight:500}
+#lw-share-modal select{width:100%;padding:9px 11px;border:1px solid #e6e9f0;border-radius:9px;margin-top:6px}
+#lw-share-modal select[multiple]{min-height:110px}
+#lw-share-modal .row{display:flex;gap:10px;justify-content:flex-end;margin-top:16px}
+#lw-share-modal button{border-radius:9px;padding:9px 16px;font-weight:600;border:1px solid #e6e9f0;background:#fff;cursor:pointer}
+#lw-share-modal button.primary{background:#2f6bff;color:#fff;border-color:#2f6bff}
+#lw-share-msg{font-size:13px;margin-top:10px}
+#lw-import-btn{position:fixed;left:18px;bottom:18px;z-index:9998;background:#fff;color:#2f6bff;border:1px solid #d9e4ff;border-radius:24px;padding:10px 16px;font:600 13px/1 inherit;text-decoration:none;box-shadow:0 4px 14px rgba(0,0,0,.12)}
+.lw-empty{background:#eef3ff;border:1px solid #d9e4ff;border-radius:12px;padding:20px 22px;margin:0 0 22px}
+.lw-empty h3{margin:0 0 6px;font-size:18px} .lw-empty p{margin:0 0 14px;color:#5b6678}
+.lw-empty-row{display:flex;gap:10px;flex-wrap:wrap}
+.lw-emptybtn{display:inline-block;padding:9px 16px;border-radius:9px;border:1px solid #d9e4ff;background:#fff;color:#2f6bff;font-weight:600;text-decoration:none}
+.lw-emptybtn.primary{background:#2f6bff;color:#fff;border-color:#2f6bff}
 </style>
+<script>
+(function(){
+  // Self-service "Who can see this?" — only on entity pages, only when IT enabled self-service.
+  // (No regex/backslashes here on purpose: the head content is stored via a SQL literal that only
+  // escapes single quotes, so a stray backslash would be mangled.)
+  var p=location.pathname;
+  if(p.indexOf('/books/')!==0 && p.indexOf('/shelves/')!==0) return;
+  var csrf=function(){var m=document.querySelector('meta[name=token]');return m?m.getAttribute('content'):'';};
+  var post=function(url,body){return fetch(url,{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf(),'X-Requested-With':'XMLHttpRequest'},body:JSON.stringify(body||{})}).then(function(r){return r.json().catch(function(){return{};});});};
+  var el=function(t,txt,cls){var n=document.createElement(t);if(txt!=null)n.textContent=String(txt);if(cls)n.className=cls;return n;};
+  var ctx=null, entity=null;
+  Promise.all([post('/letwrites/share-context',{}),post('/letwrites/resolve-entity',{path:location.pathname})]).then(function(res){
+    ctx=res[0]; entity=res[1];
+    if(!ctx||!ctx.enabled||!entity||!entity.found) return; // off, or not an entity the user can see
+    var btn=el('button','Who can see this?');btn.id='lw-share-btn';btn.addEventListener('click',open);
+    if(document.body)document.body.appendChild(btn); // .then runs post-network so body exists, but guard anyway (same class as the import-button head-timing bug)
+  }).catch(function(){});
+  function open(){
+    var ov=el('div',null);ov.id='lw-share-ov';
+    var m=el('div',null);m.id='lw-share-modal';
+    m.appendChild(el('h3','Who can see this?'));
+    m.appendChild(el('div','"'+entity.name+'" — your AI agents honor the same rule.','sub'));
+    var visEveryone=el('label');var r1=el('input');r1.type='radio';r1.name='lwvis';r1.value='inherit';r1.checked=true;visEveryone.appendChild(r1);visEveryone.appendChild(document.createTextNode(' Everyone who can reach its space'));
+    var visMe=el('label');var r3=el('input');r3.type='radio';r3.name='lwvis';r3.value='only-me';visMe.appendChild(r3);visMe.appendChild(document.createTextNode(' Only me (owner + admins)'));
+    var visRestrict=el('label');var r2=el('input');r2.type='radio';r2.name='lwvis';r2.value='restricted';visRestrict.appendChild(r2);visRestrict.appendChild(document.createTextNode(' Only the groups I choose'));
+    m.appendChild(visEveryone);m.appendChild(visMe);m.appendChild(visRestrict);
+    var gwrap=el('div');gwrap.style.display='none';
+    var gsel=el('select');gsel.multiple=true;(ctx.groups||[]).forEach(function(g){var o=el('option',g.name);o.value=String(g.id);gsel.appendChild(o);});
+    var lvl=el('select');[['viewer','View only'],['editor','View & edit'],['manager','Manage']].forEach(function(p){var o=el('option',p[1]);o.value=p[0];lvl.appendChild(o);});
+    gwrap.appendChild(el('div','Groups'));gwrap.appendChild(gsel);gwrap.appendChild(el('div','They can'));gwrap.appendChild(lvl);
+    gwrap.appendChild(el('div','Include a group you are in, or you may lose access (admins keep it).','sub'));
+    m.appendChild(gwrap);
+    [r1,r2,r3].forEach(function(r){r.addEventListener('change',function(){gwrap.style.display=r2.checked?'block':'none';});});
+    var msg=el('div',null);msg.id='lw-share-msg';m.appendChild(msg);
+    var row=el('div',null,'row');var cancel=el('button','Cancel');var apply=el('button','Apply');apply.className='primary';
+    cancel.addEventListener('click',function(){document.body.removeChild(ov);});
+    apply.addEventListener('click',function(){
+      var vis=r2.checked?'restricted':(r3.checked?'only-me':'inherit');
+      var groups=Array.prototype.map.call(gsel.selectedOptions,function(o){return Number(o.value);});
+      apply.disabled=true;msg.textContent='Applying…';msg.style.color='#5b6678';
+      post('/letwrites/share-apply',{entityType:entity.entityType,entityId:entity.entityId,visibility:vis,groups:groups,level:lvl.value}).then(function(d){
+        apply.disabled=false;msg.textContent=d&&d.ok?(d.message||'Done.'):('Failed: '+((d&&d.error)||'unknown'));msg.style.color=d&&d.ok?'#0f9d58':'#dc2626';
+      }).catch(function(){apply.disabled=false;msg.textContent='Could not reach the server.';msg.style.color='#dc2626';});
+    });
+    row.appendChild(cancel);row.appendChild(apply);m.appendChild(row);
+    ov.appendChild(m);ov.addEventListener('click',function(e){if(e.target===ov)document.body.removeChild(ov);});
+    document.body.appendChild(ov);ov.className='on';
+  }
+})();
+</script>
+<script>
+(function(){
+  // Discoverability: an "Import from Confluence" entry on the home + listing pages, and a friendly
+  // empty-state when there is no content yet. (No backslashes here on purpose — the head content is
+  // stored via a SQL literal that only escapes single quotes.)
+  var p=location.pathname;
+  var onHomeOrList = (p==='/' || p.indexOf('/books')===0 || p.indexOf('/shelves')===0);
+  if(!onHomeOrList) return;
+  var el=function(t,txt,cls){var n=document.createElement(t);if(txt!=null)n.textContent=String(txt);if(cls)n.className=cls;return n;};
+
+  // Always-available entry button (bottom-left, so it doesn't clash with the share button).
+  // Points at the in-wiki import page (native chrome, same domain) — not the raw service page.
+  // This IIFE runs from <head> (app-custom-head), so document.body may not exist yet — defer the
+  // append to DOM-ready, or the throw would abort the rest of this IIFE (incl. the empty-state).
+  var imp=el('a','Import from Confluence');imp.id='lw-import-btn';imp.href='/letwrites/import';
+  function lwAddImport(){if(document.body)document.body.appendChild(imp);}
+  if(document.readyState!=='loading'){lwAddImport();}else{document.addEventListener('DOMContentLoaded',lwAddImport);}
+
+  // Empty-state nudge on the homepage only: if no content cards are present, suggest a first step.
+  if(p==='/'){
+    document.addEventListener('DOMContentLoaded',function(){
+      var hasContent=document.querySelector('.entity-list-item, .grid-card, .book-grid-item, .entity-list .page, .featured-image-container');
+      if(hasContent) return;
+      var main=document.querySelector('.content-wrap, main, #main-content, .container') || document.body;
+      var box=el('div',null,'lw-empty');
+      box.appendChild(el('h3','Your wiki is empty — let us fix that'));
+      box.appendChild(el('p','Create your first book, or bring your Confluence content over. Once there is a page or book, the "Who can see this?" control appears on it.'));
+      var row=el('div',null,'lw-empty-row');
+      var create=el('a','Create a book');create.href='/create-book';create.className='lw-emptybtn primary';
+      var imp2=el('a','Import from Confluence');imp2.href='/letwrites/import';imp2.className='lw-emptybtn';
+      row.appendChild(create);row.appendChild(imp2);box.appendChild(row);
+      main.insertBefore(box, main.firstChild);
+    });
+  }
+})();
+</script>

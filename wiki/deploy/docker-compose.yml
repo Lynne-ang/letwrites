@@ -37,12 +37,12 @@ services:
     depends_on:
       bookstack_db:
         condition: service_healthy   # wait for the DB healthcheck (avoids the first-boot migration race)
-    # Pass .env through so any BookStack setting can be enabled by adding it to .env —
-    # AUTH_METHOD + LDAP_* / SAML2_* / OIDC_* for SSO, MAIL_* for invites, etc. BookStack
-    # ignores vars it doesn't recognise. The explicit `environment:` below wins for its keys.
-    # See DEPLOY.md "Authentication & SSO" and https://www.bookstackapp.com/docs/admin/
+    # Optional BookStack-only settings (SSO / SMTP / storage). SCOPED to bookstack.env on
+    # purpose — NOT .env — so the DB-root password and engine secret are never injected into
+    # this internet-facing container. Copy bookstack.env.example to enable. The explicit
+    # `environment:` below supplies everything BookStack needs by default.
     env_file:
-      - path: .env
+      - path: bookstack.env
         required: false
     environment:
       - PUID=1000
@@ -62,6 +62,7 @@ services:
     volumes:
       - ./data/config:/config
       - ../themes/letwrites:/app/www/themes/letwrites:ro   # the authz endpoint (no fork)
+      - ./branding/letwrites-logo.png:/app/www/public/letwrites-logo.png:ro  # served at /letwrites-logo.png; seed-branding sets app-logo to it
     # NOTE: no host port — Caddy fronts it on the internal network.
 
   bookstack_db:
@@ -112,6 +113,33 @@ services:
     volumes:
       - ./data/engine-audit:/app/data/audit   # durable, tamper-evident audit log
     # No `ports:` — internal only. Expose via the MCP gateway when it lands.
+
+  # Self-service Confluence import — a page at /import where a team member uploads their export
+  # and it imports with THEIR OWN BookStack token (so a non-admin editor can migrate their team's
+  # space without "Create Books"). Internal only; Caddy fronts it at /import. FRONT IT WITH YOUR SSO
+  # (the same proxy auth as the wiki) — the import itself also requires the user's BookStack token,
+  # so it can never do more than that person is allowed.
+  letwrites_import:
+    build:
+      context: ../../exporter
+    container_name: letwrites_import
+    restart: unless-stopped
+    depends_on:
+      - bookstack
+    entrypoint: ["/app/node_modules/.bin/tsx", "/app/src/web/import-server.ts"]
+    environment:
+      - PORT=8088
+      - BOOKSTACK_URL=http://bookstack:80   # pin the target (no SSRF: the client-supplied base is ignored)
+      # Where this BookStack version shows the user's API tokens — the standalone import page's
+      # "Get an API token" button opens <your-wiki-url> + this path. Default fits BookStack v26.05
+      # (My Account ▸ Access & Security). Change it only if your version puts tokens elsewhere.
+      - LETWRITES_TOKEN_PATH=/my-account/auth
+      # Max upload size for a Confluence export. The service streams the upload to disk (no memory
+      # blow-up), so this is just a sanity ceiling — raise it for very large spaces. Default 2 GB.
+      # The container needs ~2× this free in its temp dir (zip + unzipped tree). Caddy imposes no
+      # body limit. (Whole-upload window is 30 min; override LETWRITES_IMPORT_REQUEST_TIMEOUT_MS.)
+      - LETWRITES_IMPORT_MAX_BYTES=2147483648
+    # No `ports:` — internal only; reached through Caddy at /import.
 
 volumes:
   caddy_data:
