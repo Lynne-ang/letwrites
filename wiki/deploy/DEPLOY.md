@@ -213,6 +213,32 @@ On Kubernetes, set the same vars under `bookstack.extraEnv` in the Helm values (
 is in `values.yaml`). Full reference: https://www.bookstackapp.com/docs/admin/ldap-auth/
 (and `/saml2-auth/`, `/oidc-auth/`). SSO is in the free core; we do not charge for it.
 
+## Self-service import: the "Contributor" role
+
+By default only **Admin** can create API tokens (BookStack's "Access System API" permission),
+so a freshly-logged-in LDAP user can't reach the token page and can't self-import. The obvious
+fix — granting API access to the stock **Editor** role — is a trap: Editor has
+`book-update-all` / `book-delete-all`, so every such user could edit or delete **any** team's
+books (via the UI or the API). The API adds no new power; the over-broad role is the risk.
+
+Instead, create a least-privilege **Contributor** role and make it the default:
+```bash
+BOOKSTACK_URL=https://docs.acme.com \
+BOOKSTACK_TOKEN_ID=<admin token id> BOOKSTACK_TOKEN_SECRET=<secret> \
+  ./seed-contributor-role.sh
+# then: Settings ▸ Users ▸ Default Role → Contributor   (LDAP: set the role mapping too)
+```
+A Contributor can: log in, get a token, **import their own Confluence space** (books they own),
+create chapters/pages/images in those books, and **restrict each to a group/role**. A Contributor
+**cannot** view, edit, or delete other teams' content (`*-update-own` / `*-delete-own`, never
+`*-all`). So everyone can migrate their own team safely, and nobody can touch anyone else's books.
+
+**Visibility is role-based.** When importing, choose **Everyone** or **specific groups/roles**.
+"Only me" is **not** expressible for a non-admin — BookStack has no per-user content grant and no
+non-admin owner bypass, so a deny-all-no-roles restriction would lock the importer out of their own
+content. Restrict to a role you belong to instead. (Admins bypass all content permissions, so
+"only me" works only for them.)
+
 ## Email & invites (SMTP)
 
 The "admin invites your team" flow sends email, so it needs SMTP. Without it, an admin can
