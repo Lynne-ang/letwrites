@@ -18,10 +18,12 @@ to — self-hosted and vendor-neutral.
 
 | Dir | What | Status |
 |-----|------|--------|
-| `web/` | Landing page | ✅ self-contained `index.html` |
-| `exporter/` | Confluence → Letwrites migration: HTML-export + Word ingest, automated OAuth pull, converter, importer, source-reconciled integrity report, zero-cred demo | ✅ 47 tests green |
-| `wiki/` | BookStack + the Letwrites authz theme + modern theme (the permission source) | ✅ verified on BookStack v26.05 |
+| `web/` | Landing page + post-purchase onboarding | ✅ self-contained HTML |
+| `exporter/` | Confluence → Letwrites migration + the self-service in-wiki import service: HTML/Word ingest, OAuth pull, converter, importer, source-reconciled integrity report, zero-cred demo | ✅ 91 tests green |
+| `wiki/` | BookStack + the Letwrites theme (authz endpoints, in-wiki "Import from Confluence", "Who can see this?", branding) + deploy + the least-privilege Contributor role | ✅ verified on BookStack v26.05 |
 | `engine/` | Agent-safe engine: live per-user `canRead` over the wiki + tamper-evident audit + HTTP service | ✅ 28 tests green |
+| `skills/` | Agent skills: `letwrites-publish` / `letwrites-search` | ✅ |
+| `docs/` | Confluence↔BookStack data-model guide | ✅ |
 
 ## Migrate off Confluence (images and all)
 
@@ -82,14 +84,17 @@ for when a customer needs it.
 ## License
 
 Open-core, **Apache-2.0** (`LICENSE`). Self-host and modify all of it, including commercially
-— **SSO (OIDC/SAML/LDAP) included** (it's native to BookStack). Paid features (SCIM lifecycle,
-governance dashboard, extra connectors, the managed agent gateway, managed hosting) are a
-separate proprietary tier — see [LICENSING.md](./LICENSING.md). Contributing:
+— **SSO (OIDC/SAML/LDAP) included** (it's native to BookStack). Paid features — **self-service
+team groups** (delegated, escalation-proof team admin), the agent **write-back broker**, the
+**governance dashboard**, **tamper-evident audit** export, verified-SSO identity binding, the
+managed agent gateway, and managed hosting — are a separate proprietary tier, each **activated by a
+single license key** (the service refuses to boot without it) — see [LICENSING.md](./LICENSING.md). Contributing:
 [CONTRIBUTING.md](./CONTRIBUTING.md). Security: [SECURITY.md](./SECURITY.md).
 
 ## Not yet built
 
-The agent-facing MCP/OAuth identity gateway, extra connectors beyond BookStack, the
-governance dashboard, and comments/version-history mapping in the importer. The Confluence
-exit (text, code, tables, hierarchy, images via export-zip or OAuth) and SSO already work —
-the import is verified end-to-end against live BookStack v26.05.
+The agent-facing MCP/OAuth identity gateway, extra connectors beyond BookStack, and
+comments/version-history mapping in the importer. The Confluence exit — text, code, tables,
+hierarchy, **images (at their original display size), inter-page + related-article links, file
+attachments, and emoji** — plus SSO, the in-wiki self-service import, and forced fail-closed
+visibility all work today, verified end-to-end against live BookStack v26.05.
