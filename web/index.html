@@ -202,6 +202,28 @@
   .price li .ck{color:var(--good)} .price li .lk{color:var(--accent-hi)}
   .price .btn{width:100%;justify-content:center}
   .price-note{text-align:center;color:var(--faint);font-size:13.5px;margin-top:26px}
+  /* pricing estimator (slider) */
+  .estimator{max-width:640px;margin:46px auto 0;background:var(--panel);border:1px solid var(--border2);border-radius:16px;padding:28px 32px}
+  .est-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px}
+  .est-row label{font-size:14px;color:var(--muted);font-weight:600}
+  .est-row output{font-size:18px;font-weight:700;color:var(--text)}
+  .estimator input[type=range]{width:100%;-webkit-appearance:none;appearance:none;height:6px;border-radius:5px;background:var(--border2);outline:none;cursor:pointer}
+  .estimator input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:22px;height:22px;border-radius:50%;background:var(--accent);border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.4);cursor:pointer}
+  .estimator input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--accent);border:3px solid #fff;cursor:pointer}
+  .est-out{margin-top:24px;text-align:center}
+  .est-price{font-size:44px;font-weight:800;letter-spacing:-.03em;line-height:1}
+  .est-price small{font-size:16px;font-weight:500;color:var(--muted);letter-spacing:0}
+  .est-save{margin-top:10px;color:var(--good);font-size:15.5px;font-weight:600}
+  .est-save b{color:var(--good)}
+  .est-note{margin-top:10px;color:var(--faint);font-size:13px}
+  /* product screenshot frame */
+  .shot{margin:36px auto 0;max-width:1000px;border:1px solid var(--border2);border-radius:14px;overflow:hidden;background:var(--panel);box-shadow:0 40px 90px -50px rgba(0,0,0,.9)}
+  .shot-bar{display:flex;align-items:center;gap:7px;padding:11px 14px;background:#0e1218;border-bottom:1px solid var(--border)}
+  .shot-bar i{width:11px;height:11px;border-radius:50%;background:var(--border2);display:inline-block}
+  .shot-bar em{margin-left:12px;font-style:normal;font-family:var(--mono);font-size:12px;color:var(--faint)}
+  .shot img{display:block;width:100%;height:auto}
+  .shot-cap{max-width:1000px;margin:14px auto 0;text-align:center;color:var(--muted);font-size:14.5px}
+  .shot.sm{max-width:760px;margin-top:30px}
 
   /* faq */
   .faq{margin-top:48px;max-width:820px;margin-left:auto;margin-right:auto}
@@ -500,13 +522,69 @@ Bob (Eng)   <span class="deny">→ withheld, not authorized</span></div>
   </div>
 </section>
 
+<!-- WHAT YOU UNLOCK (paid) -->
+<section id="unlock">
+  <div class="wrap">
+    <div class="reveal" style="text-align:center">
+      <span class="label">The paid layer</span>
+      <h2 style="margin:0 auto">What your team unlocks.</h2>
+      <p class="section-sub" style="margin:16px auto 0">Free gets you off Confluence and lets agents read your wiki safely. The subscription is for when agents start to <b>write</b>, and when someone has to prove it's under control.</p>
+    </div>
+    <figure class="shot reveal">
+      <div class="shot-bar"><i></i><i></i><i></i><em>docs.yourcompany.com/governance</em></div>
+      <img src="/dashboard.png" width="1320" height="1180" loading="lazy" alt="The Letwrites governance dashboard: a green 'audit log verified' banner, KPIs for decisions/allowed/denied/identities/sources, a 'page in demand' signal, a Top Questions Asked table showing which questions get answered, and a live agent-activity feed with per-person allowed and denied decisions across the wiki and a file share." />
+    </figure>
+    <p class="shot-cap reveal">The dashboard your CISO logs into: every agent read and write, who asked what, what your people can't find, and live audit integrity — on your own servers.</p>
+    <div class="bento stagger reveal">
+      <div class="cell lead">
+        <div>
+          <div class="chip"><svg aria-hidden="true" focusable="false" class="icon"><use href="#i-bot"/></svg></div>
+          <h3>Agents that write, with a human in the loop</h3>
+          <p>Your agent drafts the runbook and files it in the right book, but a person approves before it goes live. Every write is bound to a real identity, not a shared token.</p>
+        </div>
+        <div class="mini"><span class="c"># agent finishes a task</span>
+agent → proposes "Q3 Runbook"  <span class="deny">pending approval</span>
+you   → approve                <span class="allow">published, logged as you</span></div>
+      </div>
+      <div class="cell wide tint">
+        <div class="chip"><svg aria-hidden="true" focusable="false" class="icon"><use href="#i-trend"/></svg></div>
+        <h3>See what your people can't find</h3>
+        <p>The dashboard surfaces the questions asked most, and the ones that keep coming back unanswered, so you know exactly what to document next.</p>
+      </div>
+      <div class="cell wide">
+        <div class="chip"><svg aria-hidden="true" focusable="false" class="icon"><use href="#i-filecheck"/></svg></div>
+        <h3>Prove every action to an auditor</h3>
+        <p>Every agent read and write, in a log that can't be quietly edited and is copied to your security tools. Change it and an alert fires. Then generate a <b>signed report</b> your auditor verifies on their own, proof your agents stayed in bounds.</p>
+      </div>
+    </div>
+    <figure class="shot sm reveal">
+      <div class="shot-bar"><i></i><i></i><i></i><em>docs.yourcompany.com/governance</em></div>
+      <img src="/dashboard-tamper.png" width="1320" height="300" loading="lazy" alt="The same dashboard showing a red audit integrity alert: 10 records on disk but 16 already copied to the security tools, showing that deleting or editing the log is detected immediately." />
+    </figure>
+    <p class="shot-cap reveal">Delete or edit a single log line and it turns red. Your security tools already kept the original.</p>
+    <div style="text-align:center;margin-top:34px"><a class="btn ghost" href="paid-onboard.html">How to turn it on <svg aria-hidden="true" focusable="false" class="icon"><use href="#i-arrow"/></svg></a></div>
+  </div>
+</section>
+
 <!-- PRICING -->
 <section id="pricing">
   <div class="wrap">
     <div class="reveal" style="text-align:center">
       <span class="label">Pricing</span>
-      <h2 style="margin:0 auto">Free to self-host. Pay for the enterprise layer.</h2>
-      <p class="section-sub" style="margin:16px auto 0">Open-core: the core, including SSO, is free forever. Governance, connectors, and managed agent access unlock on a subscription, and even then you still self-host and your data still stays on your servers.</p>
+      <h2 style="margin:0 auto">Self-host free. Add governed AI for $3 a seat.</h2>
+      <p class="section-sub" style="margin:16px auto 0">The wiki, SSO, migration and agent search are free forever. You pay only when you want agents to safely write to the wiki, plus the dashboard and the locked audit trail. It still runs on your own servers. Your first 3 people are free, and it's about 40% cheaper than Confluence.</p>
+    </div>
+    <div class="estimator reveal">
+      <div class="est-row">
+        <label for="teamSlider">Your team size</label>
+        <output id="teamN" for="teamSlider">50 people</output>
+      </div>
+      <input id="teamSlider" type="range" min="5" max="1000" value="50" step="5" aria-label="Team size" />
+      <div class="est-out">
+        <div class="est-price"><span id="estAnnual">$1,692</span> <small>/ year, self-hosted</small></div>
+        <div class="est-save" id="estSave">vs Confluence you save <b>$1,308</b> a year (44%)</div>
+        <div class="est-note" id="estNote">$3 per governed seat / month · first 3 seats free · billed annually</div>
+      </div>
     </div>
     <div class="price-grid stagger reveal">
       <div class="price">
@@ -518,44 +596,84 @@ Bob (Eng)   <span class="deny">→ withheld, not authorized</span></div>
           <li><svg aria-hidden="true" focusable="false" class="icon ck"><use href="#i-check"/></svg> SSO included: Google, Okta, SAML, LDAP</li>
           <li><svg aria-hidden="true" focusable="false" class="icon ck"><use href="#i-check"/></svg> Roles and per-page permissions</li>
           <li><svg aria-hidden="true" focusable="false" class="icon ck"><use href="#i-check"/></svg> Confluence to Letwrites migration</li>
-          <li><svg aria-hidden="true" focusable="false" class="icon ck"><use href="#i-check"/></svg> Permission-safe agent access and audit log</li>
-          <li><svg aria-hidden="true" focusable="false" class="icon ck"><use href="#i-check"/></svg> Self-host on your domain (Docker)</li>
+          <li><svg aria-hidden="true" focusable="false" class="icon ck"><use href="#i-check"/></svg> Permission-safe agent read + search skills, audit log</li>
+          <li><svg aria-hidden="true" focusable="false" class="icon ck"><use href="#i-check"/></svg> Try paid write access free, up to 3 people, forever</li>
+          <li><svg aria-hidden="true" focusable="false" class="icon ck"><use href="#i-check"/></svg> Self-host on your domain (Docker or Kubernetes)</li>
         </ul>
         <a class="btn ghost" href="#opensource">Self-host free</a>
       </div>
       <div class="price feat">
         <span class="ribbon">Most popular</span>
         <div class="tier">Team</div>
-        <div class="amt">$6<small> / user / mo</small></div>
-        <div class="blurb">For teams that want governance, more sources, and managed agent access. Still self-hosted.</div>
+        <div class="amt">$3<small> / governed seat / mo</small></div>
+        <div class="blurb">Let agents safely write back, and prove every action. Self-hosted, billed annually. First 3 seats free.</div>
         <ul>
           <li><svg aria-hidden="true" focusable="false" class="icon ck"><use href="#i-check"/></svg> Everything in Community (incl. SSO)</li>
-          <li><svg aria-hidden="true" focusable="false" class="icon lk"><use href="#i-lock"/></svg> CISO governance dashboard</li>
-          <li><svg aria-hidden="true" focusable="false" class="icon lk"><use href="#i-lock"/></svg> Connectors: Drive, SharePoint, Slack, Jira, Notion</li>
-          <li><svg aria-hidden="true" focusable="false" class="icon lk"><use href="#i-lock"/></svg> Managed agent gateway (hosted MCP, multi-agent)</li>
-          <li><svg aria-hidden="true" focusable="false" class="icon lk"><use href="#i-lock"/></svg> Advanced audit: retention and SIEM export</li>
+          <li><svg aria-hidden="true" focusable="false" class="icon lk"><use href="#i-lock"/></svg> Agents can write to the wiki: the agent drafts, a person approves</li>
+          <li><svg aria-hidden="true" focusable="false" class="icon lk"><use href="#i-lock"/></svg> A dashboard of every agent action, what was blocked, and what people can't find</li>
+          <li><svg aria-hidden="true" focusable="false" class="icon lk"><use href="#i-lock"/></svg> A locked audit trail you can send to your security tools</li>
+          <li><svg aria-hidden="true" focusable="false" class="icon lk"><use href="#i-lock"/></svg> A signed report for auditors, verifiable on its own</li>
+          <li><svg aria-hidden="true" focusable="false" class="icon lk"><use href="#i-lock"/></svg> Skill-usage analytics + self-hosted backup monitoring</li>
           <li><svg aria-hidden="true" focusable="false" class="icon lk"><use href="#i-lock"/></svg> Email support</li>
         </ul>
-        <a class="btn" href="#contact">Talk to us <svg aria-hidden="true" focusable="false" class="icon"><use href="#i-arrow"/></svg></a>
+        <a class="btn" href="paid-onboard.html">How to turn it on <svg aria-hidden="true" focusable="false" class="icon"><use href="#i-arrow"/></svg></a>
       </div>
       <div class="price">
         <div class="tier">Enterprise</div>
-        <div class="amt">Custom</div>
-        <div class="blurb">For regulated orgs. Lifecycle automation, agentic at scale, and an SLA.</div>
+        <div class="amt">Custom<small> / 500+ seats</small></div>
+        <div class="blurb">Volume pricing and white-glove help for large or regulated, air-gapped deployments.</div>
         <ul>
           <li><svg aria-hidden="true" focusable="false" class="icon ck"><use href="#i-check"/></svg> Everything in Team</li>
-          <li><svg aria-hidden="true" focusable="false" class="icon lk"><use href="#i-lock"/></svg> SCIM auto-provision and instant de-provision</li>
-          <li><svg aria-hidden="true" focusable="false" class="icon lk"><use href="#i-lock"/></svg> Agent-identity OAuth binding and usage analytics</li>
-          <li><svg aria-hidden="true" focusable="false" class="icon lk"><use href="#i-lock"/></svg> Tamper-proof (WORM) audit and compliance reports</li>
-          <li><svg aria-hidden="true" focusable="false" class="icon lk"><use href="#i-lock"/></svg> Managed hosting (optional) and SLA</li>
-          <li><svg aria-hidden="true" focusable="false" class="icon lk"><use href="#i-lock"/></svg> Security-review assistance</li>
+          <li><svg aria-hidden="true" focusable="false" class="icon lk"><use href="#i-lock"/></svg> Volume pricing: $30/seat past 100, $24/seat past 500</li>
+          <li><svg aria-hidden="true" focusable="false" class="icon lk"><use href="#i-lock"/></svg> Verified SSO / OIDC identity binding (JWKS)</li>
+          <li><svg aria-hidden="true" focusable="false" class="icon lk"><use href="#i-lock"/></svg> Air-gapped / offline deployment support</li>
+          <li><svg aria-hidden="true" focusable="false" class="icon lk"><use href="#i-lock"/></svg> Dedicated onboarding + security-review help</li>
+          <li><svg aria-hidden="true" focusable="false" class="icon lk"><use href="#i-lock"/></svg> SLA</li>
         </ul>
         <a class="btn ghost" href="#contact">Talk to us</a>
       </div>
     </div>
-    <p class="price-note">Prices are illustrative and billed per active user, annually. Community edition is free under Apache-2.0, forever, no seat limits.</p>
+    <p class="price-note">A "seat" is a person whose agent writes to the wiki, not someone who only reads it (readers are unlimited and free). Billed once a year, $1,200 a year minimum. Community is free under Apache 2.0, forever, with unlimited wiki users.</p>
   </div>
 </section>
+
+<script>
+(function(){
+  var s=document.getElementById('teamSlider'); if(!s) return;
+  var elN=document.getElementById('teamN'), elA=document.getElementById('estAnnual'),
+      elS=document.getElementById('estSave'), elNote=document.getElementById('estNote'),
+      small=document.querySelector('.est-price small');
+  var fmt=function(n){return '$'+Math.round(n).toLocaleString('en-US');};
+  function calc(N){
+    var billable=Math.max(0,N-3);
+    var rate=36; if(billable>500)rate=24; else if(billable>100)rate=30;        // annual $/seat
+    var annual=billable===0?0:Math.max(1200, billable*rate);
+    var conf=N*60;                                                              // Confluence $5/user/mo
+    return {annual:annual, conf:conf, save:conf-annual, billable:billable, rate:rate};
+  }
+  function render(){
+    var N=parseInt(s.value,10), r=calc(N);
+    var pct=(N-s.min)/(s.max-s.min)*100;
+    s.style.background='linear-gradient(90deg,var(--accent) '+pct+'%,var(--border2) '+pct+'%)';
+    elN.textContent=N.toLocaleString('en-US')+' people';
+    var over=r.billable>500;
+    small.style.display=over?'none':'';
+    if(over){
+      elA.textContent='Let’s talk';
+      elS.innerHTML='Volume pricing for 500+ seats — <b>contact us</b>';
+    } else if(r.billable===0){
+      elA.textContent='$0';
+      elS.innerHTML='Free — your first 3 governed seats are included';
+    } else {
+      elA.textContent=fmt(r.annual);
+      if(r.save>0) elS.innerHTML='vs Confluence you save <b>'+fmt(r.save)+'</b> a year ('+Math.round(r.save/r.conf*100)+'%)';
+      else elS.innerHTML='Teams your size usually start on <b>Free</b> →';
+    }
+    elNote.textContent='$3 per seat each month, billed once a year. 3 seats free. Big teams pay less.';
+  }
+  s.addEventListener('input',render); render();
+})();
+</script>
 
 <!-- FAQ -->
 <section id="faq">
@@ -564,12 +682,16 @@ Bob (Eng)   <span class="deny">→ withheld, not authorized</span></div>
       <h2 style="margin:0 auto">The things IT and security ask first.</h2>
     </div>
     <div class="faq reveal">
-      <details open><summary>Is it really free? <svg aria-hidden="true" focusable="false" class="icon"><use href="#i-plus"/></svg></summary><div class="a">Yes. The Community edition is open source (Apache-2.0) and free forever, with no seat limits. You self-host it. You only pay if you want the governance dashboard, extra connectors, managed agent access, or hosting, and even then you keep self-hosting and your data stays on your servers.</div></details>
-      <details><summary>Do we have to pay for SSO? <svg aria-hidden="true" focusable="false" class="icon"><use href="#i-plus"/></svg></summary><div class="a">No, SSO is included in the free Community edition. Log in with Google, Okta, Azure AD, any SAML 2.0 or OIDC provider, or LDAP. What's paid is the <em>governance</em> around identity: automated SCIM provisioning and instant de-provisioning when someone leaves (Enterprise), plus the access-review dashboard (Team). The login itself is free.</div></details>
+      <details open><summary>Is it really free? <svg aria-hidden="true" focusable="false" class="icon"><use href="#i-plus"/></svg></summary><div class="a">Yes. The Community edition is open source (Apache-2.0) and free forever, with no limit on wiki users. You self-host it. You only pay when you want agents to write to the wiki (with a person approving), the dashboard, and the locked audit trail. Even then you keep self-hosting, and your data stays on your servers.</div></details>
+      <details><summary>Do you ever see our data? <svg aria-hidden="true" focusable="false" class="icon"><use href="#i-plus"/></svg></summary><div class="a">No, never. Letwrites runs entirely on your servers. The paid features unlock with a license key, the same way a software product key works: the key is checked on your machine with offline math, so nothing phones home and nothing is uploaded. The dashboard reads your own audit log and shows it to your admins, in your building. The only thing that reaches us is your yearly payment, through the contract, not through the software.</div></details>
+      <details><summary>Do we have to pay for SSO? <svg aria-hidden="true" focusable="false" class="icon"><use href="#i-plus"/></svg></summary><div class="a">No, SSO is included in the free Community edition. Log in with Google, Okta, Azure AD, any SAML 2.0 or OIDC provider, or LDAP. What's paid is the governance on top: letting agents write to the wiki safely, the dashboard that shows what every agent did, and the locked audit trail. The login itself is free. Setup, with the gotchas handled, is a paste-to-your-agent block in the <a class="accent-text" href="onboard.html#harden">onboarding guide</a>.</div></details>
       <details><summary>Where does our data live? <svg aria-hidden="true" focusable="false" class="icon"><use href="#i-plus"/></svg></summary><div class="a">On your servers, on your domain. Letwrites is self-hosted by design, so your knowledge never touches our cloud. That's the core difference from Glean, Notion, or Confluence Cloud.</div></details>
       <details><summary>Can our IT team control who sees what? <svg aria-hidden="true" focusable="false" class="icon"><use href="#i-plus"/></svg></summary><div class="a">Completely. IT are the admins. They define roles and set permissions down to a single page. That one permission model governs both human browsing and AI agent reads, so you set access once and it covers everything. Revoking access takes effect on the next read.</div></details>
       <details><summary>Which AI agents does it work with? <svg aria-hidden="true" focusable="false" class="icon"><use href="#i-plus"/></svg></summary><div class="a">Any of them. Letwrites is vendor-neutral: Claude, Copilot, Cursor, or your own internal agents connect through a standard interface. We're the safe knowledge layer, not another AI vendor.</div></details>
-      <details><summary>How do you prove the audit log wasn't tampered with? <svg aria-hidden="true" focusable="false" class="icon"><use href="#i-plus"/></svg></summary><div class="a">Every record is hash-chained to the one before it. A built-in verify check re-walks the chain, and if anyone edits, deletes, or reorders a record, verification fails and points to the broken entry. Tamper-evident on every edition, tamper-proof (WORM) on Enterprise.</div></details>
+      <details><summary>What are the 3 free people? <svg aria-hidden="true" focusable="false" class="icon"><use href="#i-plus"/></svg></summary><div class="a">A "seat" is one person whose agent writes to the wiki through the paid gateway. Three of them are free forever, so a small team can try it at no cost. It does not limit the dashboard: the dashboard shows everyone's activity no matter how many people you have. Going past 3 just means you've grown into a paid plan, you tell us your number and pay for it.</div></details>
+      <details><summary>What is a SIEM, and do we need one? <svg aria-hidden="true" focusable="false" class="icon"><use href="#i-plus"/></svg></summary><div class="a">It's the central security log that a security team watches, like Splunk or Microsoft Sentinel. Letwrites can send a copy of every agent action there, so your security team sees it next to everything else and the record survives even if someone edits the copy on the wiki server. If your team doesn't use one, you don't need it. The audit trail still works on its own.</div></details>
+      <details><summary>How do you prove the audit log wasn't changed? <svg aria-hidden="true" focusable="false" class="icon"><use href="#i-plus"/></svg></summary><div class="a">Every entry is locked to the one before it, like links in a chain. A built-in check re-walks the chain, and if anyone edits, deletes, or reorders an entry, the check fails and points to the broken one. The dashboard turns red, and if you forward the trail to your security tools, the original copy is already safely there.</div></details>
+      <details><summary>Can we hand an auditor proof? <svg aria-hidden="true" focusable="false" class="icon"><use href="#i-plus"/></svg></summary><div class="a">Yes. The paid layer generates a signed attestation report from the audit: who ran which agent, what was allowed or blocked, and confirmation the log is intact. Your auditor can verify it on their own with our published key, and Letwrites can counter-sign it for the strongest assurance. A free or unlicensed install can't produce a valid one, so the report itself proves it came from a real, licensed, governed deployment.</div></details>
       <details><summary>How clean is the Confluence migration? <svg aria-hidden="true" focusable="false" class="icon"><use href="#i-plus"/></svg></summary><div class="a">Text, headings, lists, code blocks, tables, images, and cross-page links convert cleanly and hierarchy is preserved. Confluence-specific macros (Jira, drawio, and the like) can't be auto-converted, so we list every one in a migration report with its page, for a human to handle. We never silently mangle.</div></details>
     </div>
   </div>

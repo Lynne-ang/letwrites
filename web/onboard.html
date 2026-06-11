@@ -157,6 +157,7 @@
       <a class="lnk" href="#run">Get it running</a>
       <a class="lnk" href="#admin">First sign-in</a>
       <a class="lnk" href="#migrate">Move content</a>
+      <a class="lnk" href="#harden">SSO &amp; hardening</a>
       <a class="btn ghost sm" href="https://github.com/Lynne-ang/letwrites"><svg aria-hidden="true" focusable="false" class="icon"><use href="#i-star"/></svg> GitHub</a>
       <a class="btn sm" href="/">Back home <svg aria-hidden="true" focusable="false" class="icon"><use href="#i-arrow"/></svg></a>
     </div>
@@ -314,6 +315,55 @@ npm run migrate -- --space ENG</div>
       </div>
     </div>
     <div class="callout reveal"><svg aria-hidden="true" focusable="false" class="icon"><use href="#i-lock"/></svg><span><b>One token first.</b> As the admin, create an API token in the wiki and pass it to the migration so it can write. The full reference, including the integrity report and air-gapped notes, lives in <code style="font-family:var(--mono);font-size:13px">wiki/deploy/DEPLOY.md</code>.</span></div>
+  </div>
+</section>
+
+<!-- 4 · SSO + HARDENING -->
+<section id="harden">
+  <div class="wrap">
+    <div class="reveal">
+      <span class="label">Step 4</span>
+      <h2>Connect your SSO, and harden for production.</h2>
+      <p class="section-sub">The wiki is unmodified BookStack, so its own official docs are the source of truth for login and hardening. Hand the prompt below to your agent: it reads those docs and applies them, with the Letwrites-specific gotchas already baked in so you skip the traps that bite first-time installs.</p>
+    </div>
+
+    <div class="promptwrap reveal">
+      <div class="cmd">
+        <div class="head">
+          <span class="ttl"><svg aria-hidden="true" focusable="false" class="icon"><use href="#i-terminal"/></svg> Paste this to your AI agent</span>
+          <button class="copy" type="button">Copy prompt</button>
+        </div>
+<pre>Harden my Letwrites for production and connect our SSO. It is self hosted BookStack,
+so use BookStack's own official docs, plus the Letwrites notes below.
+
+<span class="k">1.</span> Read these official BookStack docs and apply them to my deploy:
+   Requirements + install   https://www.bookstackapp.com/docs/admin/installation/
+   Security hardening       https://www.bookstackapp.com/docs/admin/security/
+   LDAP / Active Directory  https://www.bookstackapp.com/docs/admin/ldap-auth/
+   SAML 2.0 (Okta, Azure)   https://www.bookstackapp.com/docs/admin/saml2-auth/
+<span class="k">2.</span> Put SSO and mail settings in wiki/deploy/bookstack.env (NOT .env), then
+   run: docker compose up -d bookstack. The file wiki/deploy/bookstack.env.example
+   lists every key with comments.
+<span class="k">3.</span> Apply these Letwrites specifics, they are what trip people up:
+   - Google Secure LDAP and most modern LDAPS are v3 only: set LDAP_VERSION=3,
+     or the bind fails with "ldap_bind(): Protocol error".
+   - With a client cert: BookStack runs as uid 1000 (PUID). The cert folder and
+     files under data/config/ldap-tls MUST be owned by and readable by uid 1000,
+     or login fails with "path could not be resolved". chown -R 1000:1000 them.
+   - Keep REGISTRATION_ENABLED=false (no public signup); invite users as admin.
+   - HTTPS is automatic via Caddy once DNS points at the box and 80/443 are open.
+<span class="k">4.</span> Verify: I can sign in through SSO, and
+   curl https://MY_DOMAIN/letwrites/health returns {"ok":true}.
+   Then confirm a nightly backup is scheduled (see wiki/deploy/BACKUP.md).
+
+Check in with me at each step and wait for my answer when you need a decision.</pre>
+      </div>
+      <p class="prompt-note"><svg aria-hidden="true" focusable="false" class="icon"><use href="#i-info"/></svg> The links go to BookStack's own documentation, so the steps stay correct as BookStack evolves. Prefer to read them yourself? Open the four docs directly:
+        <a class="accent-text" href="https://www.bookstackapp.com/docs/admin/installation/">install</a>,
+        <a class="accent-text" href="https://www.bookstackapp.com/docs/admin/security/">security</a>,
+        <a class="accent-text" href="https://www.bookstackapp.com/docs/admin/ldap-auth/">LDAP</a>,
+        <a class="accent-text" href="https://www.bookstackapp.com/docs/admin/saml2-auth/">SAML 2.0</a>.</p>
+    </div>
   </div>
 </section>
 
