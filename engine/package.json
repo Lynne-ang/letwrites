@@ -1,6 +1,7 @@
 {
   "name": "@letwrites/engine",
   "version": "0.1.0",
+  "license": "Apache-2.0",
   "description": "Letwrites control-plane engine (alpha scaffold): connector-agnostic permission boundary. Connector #1 = BookStack authz client.",
   "type": "module",
   "scripts": {

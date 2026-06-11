@@ -55,6 +55,28 @@ export class BookStackAuthz {
     }
   }
 
+  /**
+   * Authoritative WRITE permission check, fail-closed. Asks BookStack (the theme's can-write
+   * route) whether this user may create a page in the target book/chapter, or update an existing
+   * page. Any error/timeout/non-2xx ⇒ false (deny). The agent can never write where the human
+   * behind it can't.
+   */
+  async canWrite(principal: Principal, target: { bookId: number; chapterId?: number; pageId?: number }): Promise<boolean> {
+    try {
+      const res = await this.req('POST', '/letwrites/can-write', {
+        userId: Number(principal.userId),
+        bookId: target.bookId,
+        ...(target.chapterId != null ? { chapterId: target.chapterId } : {}),
+        ...(target.pageId != null ? { pageId: target.pageId } : {}),
+      });
+      if (!res.ok) return false;
+      const body = (await res.json()) as { allowed?: unknown };
+      return body.allowed === true;
+    } catch {
+      return false; // network error / timeout ⇒ deny
+    }
+  }
+
   private async req(method: 'GET' | 'POST', path: string, body?: unknown): Promise<Response> {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), this.timeoutMs);

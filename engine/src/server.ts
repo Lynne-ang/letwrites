@@ -1,9 +1,15 @@
 #!/usr/bin/env node
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import { timingSafeEqual } from 'node:crypto';
+import { join } from 'node:path';
 import { answer } from './engine.js';
 import { BookStackDocStore } from './bookstack-doc-store.js';
+import { BookStackWriteClient } from './bookstack-write-client.js';
+import { BookStackAuthz } from './bookstack-authz-client.js';
+import { FilesystemDocStore, FILE_PREFIX } from './filesystem-doc-store.js';
+import { CompositeDocStore, type Member } from './composite-doc-store.js';
 import { HashChainedFileSink, verifyChain } from './audit.js';
+import type { DocStore } from './doc-store.js';
 import type { Principal } from './types.js';
 
 /**
@@ -34,13 +40,49 @@ const AUDIT_FILE = process.env.LETWRITES_AUDIT_FILE ?? './data/audit/audit.jsonl
 // safe across concurrent /ask requests.
 const auditSink = new HashChainedFileSink(AUDIT_FILE);
 
-function storeFromEnv(): BookStackDocStore | null {
+/**
+ * Compose the configured knowledge sources. BookStack and/or an on-prem filesystem share; if
+ * both are set they're federated behind one CompositeDocStore (cross-source enforcement). Returns
+ * null only when NOTHING is configured. Each source enforces its own permissions, fail-closed.
+ */
+function storeFromEnv(): DocStore | null {
+  const members: Member[] = [];
+
+  const baseUrl = process.env.BOOKSTACK_URL;
+  const apiTokenId = process.env.BOOKSTACK_TOKEN_ID;
+  const apiTokenSecret = process.env.BOOKSTACK_TOKEN_SECRET;
+  const authzSecret = process.env.LETWRITES_AUTHZ_SECRET;
+  if (baseUrl && apiTokenId && apiTokenSecret && authzSecret) {
+    members.push({
+      prefixes: ['page', 'book', 'chapter', 'shelf'],
+      store: new BookStackDocStore({ baseUrl, apiTokenId, apiTokenSecret, authzSecret }),
+    });
+  }
+
+  const fsRoot = process.env.LETWRITES_FS_ROOT;
+  if (fsRoot) {
+    const aclPath = process.env.LETWRITES_FS_ACL ?? join(fsRoot, '.letwrites-acl.json');
+    members.push({ prefixes: [FILE_PREFIX], store: new FilesystemDocStore(fsRoot, aclPath) });
+  }
+
+  if (members.length === 0) return null;
+  return members.length === 1 ? members[0].store : new CompositeDocStore(members);
+}
+
+/**
+ * Write side (BookStack only). Returns a write client + the authz client used for the per-user
+ * can-write check, or null if BookStack isn't configured (writes are then unavailable).
+ */
+function writerFromEnv(): { writer: BookStackWriteClient; authz: BookStackAuthz } | null {
   const baseUrl = process.env.BOOKSTACK_URL;
   const apiTokenId = process.env.BOOKSTACK_TOKEN_ID;
   const apiTokenSecret = process.env.BOOKSTACK_TOKEN_SECRET;
   const authzSecret = process.env.LETWRITES_AUTHZ_SECRET;
   if (!baseUrl || !apiTokenId || !apiTokenSecret || !authzSecret) return null;
-  return new BookStackDocStore({ baseUrl, apiTokenId, apiTokenSecret, authzSecret });
+  return {
+    writer: new BookStackWriteClient(baseUrl, apiTokenId, apiTokenSecret),
+    authz: new BookStackAuthz(baseUrl, authzSecret),
+  };
 }
 
 function send(res: ServerResponse, status: number, body: unknown): void {
@@ -98,6 +140,52 @@ const server = createServer(async (req, res) => {
       // auditSink persists every decision before the answer returns (fail-closed).
       const result = await answer(principal, query, store, undefined, auditSink);
       return send(res, 200, result);
+    }
+
+    // Governed WRITE-BACK: an agent publishes a document on behalf of a verified user. We resolve
+    // the target, ask BookStack whether THIS user may write there (fail-closed), AUDIT the decision
+    // before doing anything, and only then create/update the page. Same trust model as /ask.
+    if (req.method === 'POST' && req.url === '/write') {
+      if (!secretOk((req.headers['x-letwrites-engine-secret'] as string) ?? '')) {
+        return send(res, 401, { error: 'unauthorized' });
+      }
+      const w = writerFromEnv();
+      if (!w) return send(res, 503, { error: 'engine not configured for writes — set BOOKSTACK_URL/TOKEN/AUTHZ_SECRET' });
+      const userId = (req.headers['x-letwrites-user-id'] as string ?? '').trim();
+      if (!userId) return send(res, 401, { error: 'no resolved user identity' });
+
+      let body: { book?: string; chapter?: string; title?: string; markdown?: string } = {};
+      try { body = JSON.parse((await readBody(req)) || '{}'); } catch { /* fall through */ }
+      const { book, chapter, title, markdown } = body;
+      if (!book || !title || markdown == null) return send(res, 422, { error: 'expected {book, title, markdown, chapter?}' });
+
+      // Resolve target. Governed mode does NOT auto-create books/chapters — the destination must
+      // exist (creating containers is a separate, higher privilege we don't grant an agent here).
+      const bk = await w.writer.findBook(book);
+      if (!bk) return send(res, 404, { error: `book not found: "${book}" (create it in Letwrites first)` });
+      let chapterId: number | undefined;
+      if (chapter) {
+        const ch = await w.writer.findChapter(bk.id, chapter);
+        if (!ch) return send(res, 404, { error: `chapter not found in "${book}": "${chapter}"` });
+        chapterId = ch.id;
+      }
+      const existing = await w.writer.findPage(bk.id, title, chapterId);
+
+      // Authoritative per-user write check, then AUDIT before the write (fail-closed).
+      const principal: Principal = { userId };
+      const allowed = await w.authz.canWrite(principal, { bookId: bk.id, chapterId, pageId: existing?.id });
+      await auditSink.append([{
+        ts: new Date().toISOString(), userId,
+        query: `[publish] ${title}`,
+        resourceId: existing ? `page:${existing.id}` : `book:${bk.id}`,
+        decision: allowed ? 'allowed' : 'denied',
+      }]);
+      if (!allowed) return send(res, 403, { error: 'not authorized to write here' });
+
+      const page = existing
+        ? await w.writer.updatePage(existing.id, title, markdown)
+        : await w.writer.createPage({ bookId: bk.id, chapterId }, title, markdown);
+      return send(res, 200, { action: existing ? 'updated' : 'created', title, url: w.writer.pageUrl(bk, page) });
     }
 
     // Audit-chain integrity check (secret-guarded). For ops/CISO to confirm the
