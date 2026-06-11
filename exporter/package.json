@@ -1,6 +1,7 @@
 {
   "name": "@letwrites/confluence-export",
   "version": "0.1.0",
+  "license": "Apache-2.0",
   "description": "Export content out of Confluence into portable Markdown + attachments, with an honest report of what couldn't be auto-converted.",
   "type": "module",
   "bin": {
@@ -13,6 +14,7 @@
     "build": "tsc",
     "export": "tsx src/cli.ts",
     "import": "tsx src/import-cli.ts",
+    "import:web": "tsx src/web/import-server.ts",
     "migrate": "tsx src/migrate.ts",
     "oauth": "tsx src/confluence-oauth-cli.ts",
     "demo": "tsx src/demo.ts",

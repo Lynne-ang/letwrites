@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { planImport, stripFrontMatter, type ManifestPage } from './import-planner.js';
+import { planImport, scopeToBook, TARGET_BOOK_KEY, stripFrontMatter, type ManifestPage } from './import-planner.js';
 
 // Mirrors the sample space hierarchy:
 //   Engineering Handbook (1)
@@ -57,6 +57,31 @@ describe('planImport — Confluence tree → BookStack model', () => {
     const deepPage = p.pages.find((x) => x.key === 'page:7')!;
     expect(deepPage.chapterKey).toBe('chapter:2');         // pulled into nearest chapter
     expect(deepPage.name).toContain('Dev Environment Setup'); // breadcrumb preserved in title
+  });
+});
+
+describe('scopeToBook — import under an existing book (non-admin editor path)', () => {
+  const scoped = scopeToBook(planImport(pages, md));
+
+  it('creates NO new books (so no Create-Books permission is needed)', () => {
+    expect(scoped.books).toHaveLength(0);
+  });
+
+  it('turns each source book into a chapter under the target book', () => {
+    expect(scoped.chapters.some((c) => c.name === 'Engineering Handbook' && c.bookKey === TARGET_BOOK_KEY)).toBe(true);
+    expect(scoped.chapters.every((c) => c.bookKey === TARGET_BOOK_KEY)).toBe(true);
+  });
+
+  it('keeps every page, all nested under the target book, and loses none', () => {
+    expect(scoped.pages).toHaveLength(6);
+    expect(scoped.pages.every((p) => p.bookKey === TARGET_BOOK_KEY)).toBe(true);
+    expect(scoped.pages.every((p) => p.chapterKey)).toBe(true); // each page lands in a chapter under the target
+  });
+
+  it('reports the flattened nesting honestly', () => {
+    // the source book had its own chapters (Onboarding, Runbooks) → flattened one level, noted
+    expect(scoped.flattened.length).toBeGreaterThan(0);
+    expect(scoped.flattened.some((f) => /flattened under the target book/.test(f.note))).toBe(true);
   });
 });
 

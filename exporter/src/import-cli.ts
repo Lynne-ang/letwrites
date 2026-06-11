@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { writeFile } from 'node:fs/promises';
-import { planImport, stripFrontMatter, type ManifestPage } from './import-planner.js';
+import { scopeToBook } from './import-planner.js';
+import { loadPlanFromDir } from './load-plan.js';
 import { renderPlanTree, runImport } from './importer.js';
 import { BookStackImportClient } from './bookstack-import-client.js';
 import { ingestConfluenceHtmlExport } from './confluence-html-export.js';
@@ -25,22 +25,7 @@ function arg(name: string): string | undefined {
   return i >= 0 ? process.argv[i + 1] : undefined;
 }
 
-async function loadPlan(inDir: string) {
-  const manifest = JSON.parse(await readFile(join(inDir, 'manifest.json'), 'utf8')) as {
-    pages: ManifestPage[];
-  };
-  const cache = new Map<string, string>();
-  const getMarkdown = (p: ManifestPage): string => {
-    if (!cache.has(p.id)) cache.set(p.id, ''); // placeholder; filled below
-    return cache.get(p.id)!;
-  };
-  // Pre-read all page bodies (sync-ish via a prefetch) so getMarkdown is pure.
-  for (const p of manifest.pages) {
-    const raw = await readFile(join(inDir, p.path), 'utf8').catch(() => '');
-    cache.set(p.id, stripFrontMatter(raw));
-  }
-  return planImport(manifest.pages, (p) => cache.get(p.id) ?? '');
-}
+const loadPlan = loadPlanFromDir;
 
 async function main() {
   if (process.argv.includes('--help') || process.argv.includes('-h')) {
@@ -50,6 +35,9 @@ async function main() {
   --from-confluence-export <DIR> ingest an unzipped Confluence "Export space → HTML" bundle first
   --from-confluence-word <FILE>  ingest a Confluence "Export → Word" .doc (images embedded; no admin needed)
   --dry-run                      print the BookStack plan, don't call the API
+  --into-book <ID>               import UNDER an existing book (no new top-level books). Use this when
+                                 you are a team editor without "Create Books" rights: pass a book you
+                                 can edit and your team's space nests inside it.
   --integrity-out <FILE>         where to write the migration-integrity report (default: <in>/integrity-report.txt)
 
 Live import needs (flags or env):
@@ -79,7 +67,17 @@ Live import needs (flags or env):
     sourceBaseline = { pages: r.sourcePages, images: r.sourceImages };
     console.log(`Ingested Confluence HTML export: ${r.pages} pages, ${r.imagesReferenced} images referenced, ${r.attachmentsCopied} attachment files copied → ${inDir}\n`);
   }
-  const plan = await loadPlan(inDir);
+  let plan = await loadPlan(inDir);
+
+  // Scoped import: nest everything under an existing book so a non-admin editor can migrate.
+  const intoBook = arg('into-book');
+  let targetBookId: number | undefined;
+  if (intoBook) {
+    targetBookId = Number(intoBook);
+    if (!Number.isInteger(targetBookId) || targetBookId <= 0) { console.error('--into-book needs a numeric BookStack book id, e.g. --into-book 12'); process.exit(1); }
+    plan = scopeToBook(plan);
+    console.log(`Scoped import: nesting everything under existing book #${targetBookId} — no new top-level books, so a team editor who can edit that book can run this without admin rights.\n`);
+  }
 
   if (process.argv.includes('--dry-run')) {
     console.log(`Import plan for ${inDir} → BookStack:\n`);
@@ -106,7 +104,7 @@ Live import needs (flags or env):
   }
 
   console.log(`Importing ${inDir} → ${creds.baseUrl}\n`);
-  const summary = await runImport(plan, client, console.log, inDir); // inDir → upload local images
+  const summary = await runImport(plan, client, console.log, inDir, { targetBookId }); // inDir → upload local images
   console.log(
     `\nDone: ${summary.books} books, ${summary.chapters} chapters, ${summary.pages} pages, ` +
     `${summary.imagesUploaded} images uploaded` +
@@ -119,6 +117,9 @@ Live import needs (flags or env):
     plan, pagesImported: summary.pages, imageManifest: summary.imageManifest,
     source: fromWord ? `Confluence Word export (${fromWord})` : fromConf ? `Confluence HTML export (${fromConf})` : inDir,
     sourceBaseline,
+    failedPageDetails: summary.failedPages,
+    links: { rewritten: summary.linksRewritten, broken: summary.linksBroken },
+    files: { uploaded: summary.filesUploaded, missing: summary.filesMissing },
   });
   console.log('\n' + renderIntegrityReport(report));
   const outTxt = arg('integrity-out') ?? join(inDir, 'integrity-report.txt');

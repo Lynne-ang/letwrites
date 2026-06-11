@@ -37,6 +37,12 @@ export interface IntegrityInput {
   source?: string;                // e.g. "Confluence space ENG (HTML export)"
   /** Counts taken from the SOURCE export (not the post-ingest output), when the ingester can supply them. */
   sourceBaseline?: { pages?: number; images?: number };
+  /** Pages that failed to import, with the reason — so the report names which pages are missing and why. */
+  failedPageDetails?: { page: string; reason: string }[];
+  /** Inter-page links repointed to BookStack vs flattened to text (target didn't import). */
+  links?: { rewritten: number; broken: number };
+  /** Non-image attachments (pdf/mp4/…) uploaded vs unresolved. */
+  files?: { uploaded: number; missing: number };
 }
 
 export interface IntegrityReport {
@@ -45,7 +51,10 @@ export interface IntegrityReport {
   pages: { expected: number; imported: number; failed: number };
   images: { source: number | null; found: number; uploaded: number; missing: number; failed: number; droppedAtIngest: number };
   tree: { flattened: number; notes: string[] };
+  links: { rewritten: number; broken: number }; // inter-page links repointed vs flattened to text
+  files: { uploaded: number; missing: number }; // non-image attachments uploaded vs unresolved
   perPageImageGaps: PageImageRecord[]; // only pages with missing/failed images
+  pageGaps: { page: string; reason: string }[]; // pages that failed to import, with the reason
   verdict: 'COMPLETE' | 'INCOMPLETE';
   checksum: string;                    // sha256 of the canonical report (minus this field) — integrity, not a signature
 }
@@ -80,7 +89,10 @@ export function buildIntegrityReport(input: IntegrityInput): IntegrityReport {
     pages: { expected, imported: pagesImported, failed: failedPages },
     images: { source: sourceImages, found, uploaded, missing, failed, droppedAtIngest },
     tree: { flattened: plan.flattened.length, notes: plan.flattened.map((f) => `${f.pageTitle}: ${f.note}`) },
+    links: input.links ?? { rewritten: 0, broken: 0 },
+    files: input.files ?? { uploaded: 0, missing: 0 },
     perPageImageGaps: imageManifest.filter((r) => r.missing.length || r.failed.length),
+    pageGaps: input.failedPageDetails ?? [],
     verdict:
       failedPages === 0 && missing === 0 && failed === 0 && droppedAtIngest === 0
         ? 'COMPLETE'
@@ -133,6 +145,16 @@ export function renderIntegrityReport(r: IntegrityReport): string {
       (img.droppedAtIngest || img.missing || img.failed ? '' : '  ✓'),
   );
   L.push(`Tree:   ${r.tree.flattened} page(s) flattened` + (r.tree.flattened ? '' : '  ✓'));
+  if (r.links.rewritten || r.links.broken) {
+    L.push(`Links:  ${r.links.rewritten} inter-page link(s) repointed to BookStack` + (r.links.broken ? `, ${r.links.broken} to non-imported pages flattened to text` : '  ✓'));
+  }
+  if (r.files.uploaded || r.files.missing) {
+    L.push(`Files:  ${r.files.uploaded} attachment(s) uploaded + linked` + (r.files.missing ? `, ${r.files.missing} unresolved` : '  ✓'));
+  }
+  if (r.pageGaps.length) {
+    L.push('', 'Page gaps (page → why it failed):');
+    for (const g of r.pageGaps) L.push(`  • ${g.page}: ${g.reason}`);
+  }
   if (r.perPageImageGaps.length) {
     L.push('', 'Image gaps (page → refs):');
     for (const g of r.perPageImageGaps) {

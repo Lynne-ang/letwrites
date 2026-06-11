@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildIntegrityReport, verifyReport, type PageImageRecord } from './integrity.js';
+import { buildIntegrityReport, renderIntegrityReport, verifyReport, type PageImageRecord } from './integrity.js';
 import type { ImportPlan } from './import-planner.js';
 
 const plan = (pages: number, flattened = 0): ImportPlan => ({
@@ -10,6 +10,21 @@ const plan = (pages: number, flattened = 0): ImportPlan => ({
 });
 
 describe('integrity report', () => {
+  it('names the pages that failed to import, with the reason', () => {
+    const r = buildIntegrityReport({
+      plan: plan(3), pagesImported: 1, imageManifest: [], sourceBaseline: { pages: 3 },
+      failedPageDetails: [
+        { page: 'Fax Settings', reason: 'BookStack 403 on POST /api/pages' },
+        { page: 'IT Operation', reason: 'BookStack 422: name is required' },
+      ],
+    });
+    expect(r.pageGaps.length).toBe(2);
+    const text = renderIntegrityReport(r);
+    expect(text).toContain('Page gaps');
+    expect(text).toContain('Fax Settings: BookStack 403 on POST /api/pages');
+    expect(text).toContain('IT Operation: BookStack 422: name is required');
+  });
+
   it('is COMPLETE when every page and image landed', () => {
     const manifest: PageImageRecord[] = [{ page: 'P0', found: 2, uploaded: ['a.png', 'b.png'], missing: [], failed: [] }];
     const r = buildIntegrityReport({ plan: plan(3), pagesImported: 3, imageManifest: manifest, sourceBaseline: { pages: 3, images: 2 } });

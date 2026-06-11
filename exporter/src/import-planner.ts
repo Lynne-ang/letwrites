@@ -123,6 +123,41 @@ export function planImport(
   return plan;
 }
 
+/** Synthetic book key meaning "the existing target book" (used by scopeToBook). */
+export const TARGET_BOOK_KEY = '__letwrites_target_book__';
+
+/**
+ * Rewrite a plan so the whole tree imports UNDER one existing book instead of creating new
+ * top-level books. This is what lets a NON-ADMIN editor migrate: they need only edit rights on a
+ * book they already own, not the "Create Books" permission the default import requires. Each source
+ * book becomes a Chapter under the target; the source's own chapters are flattened into it (one
+ * nesting level removed), reported the same way the planner already reports deep flattening.
+ */
+export function scopeToBook(plan: ImportPlan): ImportPlan {
+  const bookToChapter = new Map<string, string>();
+  const chapters: ChapterOp[] = [];
+  for (const b of plan.books) {
+    const ck = `scopedbook:${b.key}`;
+    chapters.push({ key: ck, bookKey: TARGET_BOOK_KEY, name: b.name });
+    bookToChapter.set(b.key, ck);
+  }
+  const flattened: FlattenNote[] = [...plan.flattened];
+  const origChapterToNew = new Map<string, string>();
+  for (const c of plan.chapters) {
+    const newCh = bookToChapter.get(c.bookKey);
+    if (newCh) {
+      origChapterToNew.set(c.key, newCh);
+      flattened.push({ pageTitle: c.name, note: 'chapter flattened under the target book (one nesting level removed for the scoped import)' });
+    }
+  }
+  const pages: PageOp[] = plan.pages.map((p) => ({
+    ...p,
+    bookKey: TARGET_BOOK_KEY,
+    chapterKey: p.chapterKey ? origChapterToNew.get(p.chapterKey) : bookToChapter.get(p.bookKey),
+  }));
+  return { books: [], chapters, pages, flattened };
+}
+
 /** Strip YAML front-matter the exporter added, leaving body Markdown. */
 export function stripFrontMatter(md: string): string {
   if (md.startsWith('---')) {
