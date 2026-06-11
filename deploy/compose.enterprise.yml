@@ -1,0 +1,108 @@
+# Letwrites Enterprise overlay — adds the PAID services to your running open-core stack.
+#
+# You do NOT build anything: these are prebuilt, license-gated images. They refuse to start without
+# a valid activation code, so the image being pullable is harmless — the license is the gate.
+#
+#   1) Get your activation code from your success page (or letwrites.com → Get your license key).
+#   2) In your open-core deploy dir (wiki/deploy), put these in .env:
+#        LETWRITES_ACTIVATION=lw_...                 # your code
+#        LETWRITES_BILLING_URL=https://login.letwrites.com
+#        LETWRITES_ENGINE_SECRET=...                 # the SAME secret your engine uses
+#        LETWRITES_SELF_SERVICE=on                   # optional: turn on self-service team groups
+#   3) Bring it up alongside the core:
+#        docker compose -f wiki/deploy/docker-compose.yml -f ../deploy/compose.enterprise.yml up -d
+#      All paid services activate on boot and refresh daily (reporting only seat counts, never content).
+#
+# Air-gapped? Set LETWRITES_LICENSE=<offline token> instead of LETWRITES_ACTIVATION (ask us for one).
+#
+# IMAGE: replace the tag below with the published Letwrites enterprise image once distribution is set.
+x-ent-image: &ent_image asia-southeast1-docker.pkg.dev/letwrites-web/letwrites/enterprise:v3
+
+services:
+  # Overlay extra env onto the open-core bookstack so its theme can mint share assertions + reach the broker.
+  bookstack:
+    environment:
+      - LETWRITES_SELF_SERVICE=${LETWRITES_SELF_SERVICE:-off}
+      - LETWRITES_SHARE_SECRET=${LETWRITES_SHARE_SECRET}
+      - LETWRITES_SHARE_URL=http://letwrites_gateway:8788
+
+  letwrites_gateway:
+    image: *ent_image
+    command: ["node", "dist/gateway/server.js"]
+    container_name: letwrites_gateway
+    restart: unless-stopped
+    depends_on: [letwrites_engine]
+    environment:
+      - PORT=8788
+      - ENGINE_URL=http://letwrites_engine:8787
+      - LETWRITES_ENGINE_SECRET=${LETWRITES_ENGINE_SECRET}
+      - LETWRITES_ACTIVATION=${LETWRITES_ACTIVATION:-}
+      - LETWRITES_BILLING_URL=${LETWRITES_BILLING_URL:-https://login.letwrites.com}
+      - LETWRITES_LICENSE=${LETWRITES_LICENSE:-}
+      - LETWRITES_LICENSE_CACHE=/data/license.cache
+      - LETWRITES_SEAT_FILE=/data/seats.json
+      - LETWRITES_USER_HEADER=${LETWRITES_USER_HEADER:-x-forwarded-user}
+      - LETWRITES_SEAT_ENFORCE=${LETWRITES_SEAT_ENFORCE:-block}
+      - OIDC_ISSUER=${OIDC_ISSUER:-}
+      - OIDC_AUDIENCE=${OIDC_AUDIENCE:-}
+    volumes: [gw_state:/data]
+
+  letwrites_share:
+    image: *ent_image
+    command: ["node", "dist/share/server.js"]
+    container_name: letwrites_share
+    restart: unless-stopped
+    environment:
+      - PORT=8089
+      - LETWRITES_ACTIVATION=${LETWRITES_ACTIVATION:-}
+      - LETWRITES_BILLING_URL=${LETWRITES_BILLING_URL:-https://login.letwrites.com}
+      - LETWRITES_LICENSE=${LETWRITES_LICENSE:-}
+      - LETWRITES_LICENSE_CACHE=/lic/license.cache
+      - LETWRITES_SELF_SERVICE=${LETWRITES_SELF_SERVICE:-off}
+      - LETWRITES_SHARE_SECRET=${LETWRITES_SHARE_SECRET}
+      - LETWRITES_AUTHZ_SECRET=${LETWRITES_AUTHZ_SECRET}
+      - BOOKSTACK_URL=http://bookstack:80
+      - LETWRITES_BROKER_TOKEN_ID=${LETWRITES_BROKER_TOKEN_ID}
+      - LETWRITES_BROKER_TOKEN_SECRET=${LETWRITES_BROKER_TOKEN_SECRET}
+      - LETWRITES_SHARE_AUDIT_FILE=/share-audit/share-audit.jsonl
+    volumes: [share_audit:/share-audit, lic_cache:/lic]
+
+  letwrites_audit_export:
+    image: *ent_image
+    command: ["node", "dist/audit/server.js"]
+    container_name: letwrites_audit_export
+    restart: unless-stopped
+    environment:
+      - LETWRITES_ACTIVATION=${LETWRITES_ACTIVATION:-}
+      - LETWRITES_BILLING_URL=${LETWRITES_BILLING_URL:-https://login.letwrites.com}
+      - LETWRITES_LICENSE=${LETWRITES_LICENSE:-}
+      - LETWRITES_LICENSE_CACHE=/lic/license.cache
+      - LETWRITES_AUDIT_FILE=/audit/audit.jsonl
+      - LETWRITES_ANCHOR_FILE=/anchor/.anchor.json
+      - SIEM_TYPE=${SIEM_TYPE:-console}
+      - SIEM_URL=${SIEM_URL:-}
+      - SIEM_HEADERS=${SIEM_HEADERS:-}
+    volumes: [./data/engine-audit:/audit:ro, audit_anchor:/anchor, lic_cache:/lic]
+
+  letwrites_governance:
+    image: *ent_image
+    command: ["node", "dist/dashboard/server.js"]
+    container_name: letwrites_governance
+    restart: unless-stopped
+    environment:
+      - PORT=8790
+      - LETWRITES_ACTIVATION=${LETWRITES_ACTIVATION:-}
+      - LETWRITES_BILLING_URL=${LETWRITES_BILLING_URL:-https://login.letwrites.com}
+      - LETWRITES_LICENSE=${LETWRITES_LICENSE:-}
+      - LETWRITES_LICENSE_CACHE=/lic/license.cache
+      - LETWRITES_AUDIT_FILE=/audit/audit.jsonl
+      - LETWRITES_ANCHOR_FILE=/anchor/.anchor.json
+      - GATEWAY_URL=http://letwrites_gateway:8788
+      - LETWRITES_DASHBOARD_TOKEN=${LETWRITES_DASHBOARD_TOKEN:-}
+    volumes: [./data/engine-audit:/audit:ro, audit_anchor:/anchor:ro, lic_cache:/lic]
+
+volumes:
+  audit_anchor:
+  share_audit:
+  gw_state:
+  lic_cache:

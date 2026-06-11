@@ -130,7 +130,7 @@
     <div class="reveal">
       <p class="tagline">Enterprise setup</p>
       <h1>You subscribed. <span class="accent-text">Turn it on.</span></h1>
-      <p class="sub">The paid layer is three extra services you run next to your wiki, on your own servers: the gateway your agents talk to, the audit recorder, and the dashboard. They switch on with your license key. Nothing moves to our cloud, and we see nothing. Hand the prompt below to your agent, or follow the four steps yourself.</p>
+      <p class="sub">The paid layer is three extra services you run next to your wiki, on your own servers: the gateway your agents talk to, the audit recorder, and the dashboard. They switch on with your short activation code. Your content never moves to our cloud — only seat counts are reported, so we can meter the plan. Hand the prompt below to your agent, or follow the four steps yourself.</p>
     </div>
     <div class="promptwrap reveal">
       <div class="cmd">
@@ -140,10 +140,10 @@
         </div>
 <pre>Turn on the Letwrites Enterprise layer on our existing self-hosted Letwrites.
 
-<span class="k">1.</span> I have a license token and access to the private images. Ask me for the
-   token (LETWRITES_LICENSE) and confirm we can pull the enterprise images.
+<span class="k">1.</span> I have an activation code and access to the private images. Ask me for the
+   code (LETWRITES_ACTIVATION) and confirm we can pull the enterprise images.
 <span class="k">2.</span> Bring up the three paid services next to our stack with the enterprise overlay,
-   with LETWRITES_LICENSE set and LETWRITES_ENGINE_SECRET shared with the engine:
+   with LETWRITES_ACTIVATION + LETWRITES_BILLING_URL set and LETWRITES_ENGINE_SECRET shared with the engine:
      docker compose -f wiki/deploy/docker-compose.yml \
        -f deploy/compose.enterprise.yml up -d
    They refuse to start without a valid license, so confirm all three booted.
@@ -165,16 +165,16 @@ Check in with me at each step and wait for my answer when you need a decision.</
   <div class="wrap">
     <div class="reveal">
       <span class="label">Step 1</span>
-      <h2>Your license key, and the images.</h2>
-      <p class="section-sub">When you subscribe we send you two things: a signed license token, and access to pull the private Enterprise images. The token is checked on your own servers, so it never calls home and works even with no internet.</p>
+      <h2>Your activation code, and the images.</h2>
+      <p class="section-sub">When you subscribe you get two things: a short activation code (shown on your success page, re-fetchable anytime at <a class="accent-text" href="https://billing.letwrites.com/license">billing.letwrites.com/license</a>), and access to pull the private Enterprise images. Your services exchange the code for a signed, short-lived license and refresh it daily — reporting only seat counts, never your content. Air-gapped deployments can use an offline token instead.</p>
     </div>
     <div class="steps stagger reveal">
       <div class="step">
         <div class="n">1</div>
-        <div><h3>Drop the token in your environment</h3><p>Put the token in your env as <code>LETWRITES_LICENSE</code>. It holds your company, plan, the number of seats you bought, and the expiry. You can't edit it: changing any field breaks the signature.</p>
+        <div><h3>Drop your activation code in your environment</h3><p>Put your short code in your env as <code>LETWRITES_ACTIVATION</code>. Your services fetch a signed, short-lived license from us and refresh it daily; change seats or cancel anytime and they pick it up automatically. (Air-gapped? Use an offline <code>LETWRITES_LICENSE</code> token instead — just ask.)</p>
         <div class="mini"><button class="copy" type="button">Copy</button><span class="c"># in your deploy .env</span>
-LETWRITES_LICENSE=eyJvcmciOiJB...   <span class="c"># the token we sent you</span>
-LETWRITES_LICENSE_PUBKEY=           <span class="c"># optional: bring-your-own / rotate</span></div></div>
+LETWRITES_ACTIVATION=lw_...          <span class="c"># the code from your success page</span>
+LETWRITES_BILLING_URL=https://billing.letwrites.com</div></div>
       </div>
       <div class="step">
         <div class="n">2</div>

@@ -577,7 +577,7 @@ you   → approve                <span class="allow">published, logged as you</s
     <div class="reveal" style="text-align:center">
       <span class="label">Pricing</span>
       <h2 style="margin:0 auto">Self-host free. Add governed AI for $3 a seat.</h2>
-      <p class="section-sub" style="margin:16px auto 0">The wiki, SSO, migration and agent search are free forever. You pay only when you want agents to safely write to the wiki, plus the dashboard and the locked audit trail. It still runs on your own servers. Your first 3 people are free, and it's about 40% cheaper than Confluence.</p>
+      <p class="section-sub" style="margin:16px auto 0">The wiki, SSO, migration and agent search are free forever. You pay only when you want agents to safely write to the wiki, plus the dashboard and the locked audit trail. It still runs on your own servers. Start with a 14-day free trial, and it's about 40% cheaper than Confluence.</p>
     </div>
     <div class="estimator reveal">
       <div class="est-row">
@@ -586,9 +586,9 @@ you   → approve                <span class="allow">published, logged as you</s
       </div>
       <input id="teamSlider" type="range" min="5" max="1000" value="50" step="5" aria-label="Team size" />
       <div class="est-out">
-        <div class="est-price"><span id="estAnnual">$1,692</span> <small>/ year, self-hosted</small></div>
-        <div class="est-save" id="estSave">vs Confluence you save <b>$1,308</b> a year (44%)</div>
-        <div class="est-note" id="estNote">$3 per governed seat / month · first 3 seats free · billed annually</div>
+        <div class="est-price"><span id="estAnnual">$1,800</span> <small>/ year, self-hosted</small></div>
+        <div class="est-save" id="estSave">vs Confluence you save <b>$1,200</b> a year (40%)</div>
+        <div class="est-note" id="estNote">$3 per governed seat / month · 14-day free trial · billed monthly or annually</div>
       </div>
     </div>
     <div class="price-grid stagger reveal">
@@ -602,7 +602,7 @@ you   → approve                <span class="allow">published, logged as you</s
           <li><svg aria-hidden="true" focusable="false" class="icon ck"><use href="#i-check"/></svg> Roles and per-page permissions</li>
           <li><svg aria-hidden="true" focusable="false" class="icon ck"><use href="#i-check"/></svg> Confluence to Letwrites migration</li>
           <li><svg aria-hidden="true" focusable="false" class="icon ck"><use href="#i-check"/></svg> Permission-safe agent read + search skills, audit log</li>
-          <li><svg aria-hidden="true" focusable="false" class="icon ck"><use href="#i-check"/></svg> Try paid write access free, up to 3 people, forever</li>
+          <li><svg aria-hidden="true" focusable="false" class="icon ck"><use href="#i-check"/></svg> 14-day free trial of every paid feature</li>
           <li><svg aria-hidden="true" focusable="false" class="icon ck"><use href="#i-check"/></svg> Self-host on your domain (Docker or Kubernetes)</li>
         </ul>
         <a class="btn ghost" href="#opensource">Self-host free</a>
@@ -611,7 +611,7 @@ you   → approve                <span class="allow">published, logged as you</s
         <span class="ribbon">Most popular</span>
         <div class="tier">Team</div>
         <div class="amt">$3<small> / governed seat / mo</small></div>
-        <div class="blurb">Let agents safely write back, and prove every action. Self-hosted, billed annually. First 3 seats free.</div>
+        <div class="blurb">Let agents safely write back, and prove every action. Self-hosted. 14-day free trial, then billed monthly or annually.</div>
         <ul>
           <li><svg aria-hidden="true" focusable="false" class="icon ck"><use href="#i-check"/></svg> Everything in Community (incl. SSO)</li>
           <li><svg aria-hidden="true" focusable="false" class="icon lk"><use href="#i-lock"/></svg> Self-service team groups: people create and run their own sharing groups, no admin ticket, with no way to reach another team's content</li>
@@ -622,7 +622,8 @@ you   → approve                <span class="allow">published, logged as you</s
           <li><svg aria-hidden="true" focusable="false" class="icon lk"><use href="#i-lock"/></svg> Skill-usage analytics + self-hosted backup monitoring</li>
           <li><svg aria-hidden="true" focusable="false" class="icon lk"><use href="#i-lock"/></svg> Email support</li>
         </ul>
-        <a class="btn" href="paid-onboard.html">How to turn it on <svg aria-hidden="true" focusable="false" class="icon"><use href="#i-arrow"/></svg></a>
+        <button class="btn" type="button" id="openSub" style="width:100%;box-sizing:border-box">Subscribe <svg aria-hidden="true" focusable="false" class="icon"><use href="#i-arrow"/></svg></button>
+        <a class="btn ghost" href="paid-onboard.html" style="margin-top:10px">Already have a key? Turn it on</a>
       </div>
       <div class="price">
         <div class="tier">Enterprise</div>
@@ -639,7 +640,7 @@ you   → approve                <span class="allow">published, logged as you</s
         <a class="btn ghost" href="#contact">Talk to us</a>
       </div>
     </div>
-    <p class="price-note">A "seat" is a person whose agent writes to the wiki, not someone who only reads it (readers are unlimited and free). Billed once a year, $1,200 a year minimum. Community is free under Apache 2.0, forever, with unlimited wiki users.</p>
+    <p class="price-note">A "seat" is a person whose agent writes to the wiki, not someone who only reads it (readers are unlimited and free). Every paid plan starts with a 14-day free trial. Community is free under Apache 2.0, forever, with unlimited wiki users.</p>
   </div>
 </section>
 
@@ -651,11 +652,11 @@ you   → approve                <span class="allow">published, logged as you</s
       small=document.querySelector('.est-price small');
   var fmt=function(n){return '$'+Math.round(n).toLocaleString('en-US');};
   function calc(N){
-    var billable=Math.max(0,N-3);
-    var rate=36; if(billable>500)rate=24; else if(billable>100)rate=30;        // annual $/seat
-    var annual=billable===0?0:Math.max(1200, billable*rate);
-    var conf=N*60;                                                              // Confluence $5/user/mo
-    return {annual:annual, conf:conf, save:conf-annual, billable:billable, rate:rate};
+    var b=N;                                                                   // every seat paid (14-day free trial, then billed)
+    // graduated annual: first 100 @ $36/seat, next 400 @ $30, rest @ $24 (matches Stripe + the Subscribe modal)
+    var annual=Math.min(b,100)*36 + Math.min(Math.max(b-100,0),400)*30 + Math.max(b-500,0)*24;
+    var conf=N*60;                                                             // Confluence $5/user/mo
+    return {annual:annual, conf:conf, save:conf-annual, billable:b};
   }
   function render(){
     var N=parseInt(s.value,10), r=calc(N);
@@ -669,15 +670,66 @@ you   → approve                <span class="allow">published, logged as you</s
       elS.innerHTML='Volume pricing for 500+ seats — <b>contact us</b>';
     } else if(r.billable===0){
       elA.textContent='$0';
-      elS.innerHTML='Free — your first 3 governed seats are included';
+      elS.innerHTML='Every paid plan starts with a 14-day free trial';
     } else {
       elA.textContent=fmt(r.annual);
       if(r.save>0) elS.innerHTML='vs Confluence you save <b>'+fmt(r.save)+'</b> a year ('+Math.round(r.save/r.conf*100)+'%)';
       else elS.innerHTML='Teams your size usually start on <b>Free</b> →';
     }
-    elNote.textContent='$3 per seat each month, billed once a year. 3 seats free. Big teams pay less.';
+    elNote.textContent='$3 per seat / month, billed monthly or yearly. 14-day free trial. Big teams pay less.';
   }
   s.addEventListener('input',render); render();
+})();
+</script>
+
+<!-- SUBSCRIBE MODAL -->
+<div id="subModal" style="display:none;position:fixed;inset:0;background:rgba(11,18,32,.55);z-index:200;align-items:center;justify-content:center;padding:20px" role="dialog" aria-modal="true" aria-labelledby="subTitle">
+  <div style="background:#fff;border-radius:18px;max-width:420px;width:100%;padding:26px;box-shadow:0 24px 60px rgba(0,0,0,.3);position:relative;color:#0b1220">
+    <button type="button" id="subClose" aria-label="Close" style="position:absolute;top:12px;right:14px;border:0;background:none;font-size:24px;line-height:1;cursor:pointer;color:#64748b">&times;</button>
+    <h3 id="subTitle" style="margin:0 0 4px;font-size:20px">Subscribe to Team</h3>
+    <p style="margin:0 0 18px;color:#64748b;font-size:13.5px">14-day free trial · big teams pay less · cancel anytime.</p>
+    <div style="display:flex;gap:6px;background:#eef2fb;border-radius:10px;padding:4px;margin-bottom:16px">
+      <button type="button" id="mSegA" style="flex:1;border:0;border-radius:8px;padding:9px;font-weight:600;cursor:pointer">Annual</button>
+      <button type="button" id="mSegM" style="flex:1;border:0;border-radius:8px;padding:9px;font-weight:600;cursor:pointer">Monthly</button>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <label for="mSeat" style="font-size:14px;color:#475569">Seats (agent writers)</label>
+      <input id="mSeat" type="number" min="1" max="500" value="10" style="width:92px;padding:9px;border:1px solid #cbd5e1;border-radius:8px;font-size:15px;text-align:center" />
+    </div>
+    <div style="background:#f6f8fc;border-radius:12px;padding:14px 16px;margin-bottom:18px">
+      <div><span id="mTotal" style="font-size:28px;font-weight:700">$252</span> <small id="mUnit" style="color:#475569">/ year</small></div>
+      <div id="mBreak" style="font-size:12.5px;color:#64748b;margin-top:3px">14-day free trial</div>
+    </div>
+    <a class="btn" id="mGo" href="#" style="width:100%;text-align:center;box-sizing:border-box">Continue to secure checkout →</a>
+    <p style="text-align:center;margin:12px 0 0;font-size:11.5px;color:#94a3b8">Powered by Stripe · 500+ seats? <a href="#contact" style="color:#94a3b8;text-decoration:underline">Talk to us</a></p>
+  </div>
+</div>
+<script>
+(function(){
+  var BILL='https://letwrites-billing-xo4k3oz3aa-as.a.run.app';
+  var modal=document.getElementById('subModal'), open=document.getElementById('openSub');
+  if(!modal||!open) return;
+  var interval='annual', seat=document.getElementById('mSeat'),
+      segA=document.getElementById('mSegA'), segM=document.getElementById('mSegM'),
+      tot=document.getElementById('mTotal'), unit=document.getElementById('mUnit'), brk=document.getElementById('mBreak'), go=document.getElementById('mGo');
+  var fmt=function(n){return '$'+Math.round(n).toLocaleString('en-US');};
+  function grad(b,r1,r2,r3){return Math.min(b,100)*r1 + Math.min(Math.max(b-100,0),400)*r2 + Math.max(b-500,0)*r3;}
+  function render(){
+    var s=Math.max(1,Math.min(500,parseInt(seat.value,10)||1)), b=s, on=interval==='annual';
+    segA.style.background=on?'#fff':'transparent'; segA.style.color=on?'#0b1220':'#475569'; segA.style.boxShadow=on?'0 1px 2px rgba(0,0,0,.08)':'none';
+    segM.style.background=on?'transparent':'#fff'; segM.style.color=on?'#475569':'#0b1220'; segM.style.boxShadow=on?'none':'0 1px 2px rgba(0,0,0,.08)';
+    tot.textContent=fmt(on?grad(b,36,30,24):grad(b,3,2.5,2));
+    unit.textContent=on?'/ year':'/ month';
+    brk.textContent='14-day free trial, then '+(on?'$36/seat/yr, $30 past 100':'$3/seat/mo, $2.50 past 100');
+    go.href=BILL+'/checkout?interval='+interval+'&seats='+s;
+  }
+  function show(v){ modal.style.display=v?'flex':'none'; }
+  open.onclick=function(){render();show(true);setTimeout(function(){seat.focus();},30);};
+  document.getElementById('subClose').onclick=function(){show(false);};
+  modal.onclick=function(e){ if(e.target===modal) show(false); };
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape') show(false); });
+  segA.onclick=function(){interval='annual';render();}; segM.onclick=function(){interval='monthly';render();};
+  seat.oninput=render; render();
 })();
 </script>
 
@@ -694,7 +746,7 @@ you   → approve                <span class="allow">published, logged as you</s
       <details><summary>Where does our data live? <svg aria-hidden="true" focusable="false" class="icon"><use href="#i-plus"/></svg></summary><div class="a">On your servers, on your domain. Letwrites is self-hosted by design, so your knowledge never touches our cloud. That's the core difference from Glean, Notion, or Confluence Cloud.</div></details>
       <details><summary>Can our IT team control who sees what? <svg aria-hidden="true" focusable="false" class="icon"><use href="#i-plus"/></svg></summary><div class="a">Completely. IT are the admins. They define roles and set permissions down to a single page. That one permission model governs both human browsing and AI agent reads, so you set access once and it covers everything. Revoking access takes effect on the next read.</div></details>
       <details><summary>Which AI agents does it work with? <svg aria-hidden="true" focusable="false" class="icon"><use href="#i-plus"/></svg></summary><div class="a">Any of them. Letwrites is vendor-neutral: Claude, Copilot, Cursor, or your own internal agents connect through a standard interface. We're the safe knowledge layer, not another AI vendor.</div></details>
-      <details><summary>What are the 3 free people? <svg aria-hidden="true" focusable="false" class="icon"><use href="#i-plus"/></svg></summary><div class="a">A "seat" is one person whose agent writes to the wiki through the paid gateway. Three of them are free forever, so a small team can try it at no cost. It does not limit the dashboard: the dashboard shows everyone's activity no matter how many people you have. Going past 3 just means you've grown into a paid plan, you tell us your number and pay for it.</div></details>
+      <details><summary>Is there a free trial, and what's a "seat"? <svg aria-hidden="true" focusable="false" class="icon"><use href="#i-plus"/></svg></summary><div class="a">Every paid plan starts with a <b>14-day free trial</b> of all paid features — cancel before it ends for $0. After that you pay per seat, where a "seat" is one person whose agent <b>writes</b> to the wiki through the gateway in a given month (readers, and people who edit by hand, are unlimited and free). Inactive people automatically free their seat after 30 days.</div></details>
       <details><summary>What is a SIEM, and do we need one? <svg aria-hidden="true" focusable="false" class="icon"><use href="#i-plus"/></svg></summary><div class="a">It's the central security log that a security team watches, like Splunk or Microsoft Sentinel. Letwrites can send a copy of every agent action there, so your security team sees it next to everything else and the record survives even if someone edits the copy on the wiki server. If your team doesn't use one, you don't need it. The audit trail still works on its own.</div></details>
       <details><summary>How do you prove the audit log wasn't changed? <svg aria-hidden="true" focusable="false" class="icon"><use href="#i-plus"/></svg></summary><div class="a">Every entry is locked to the one before it, like links in a chain. A built-in check re-walks the chain, and if anyone edits, deletes, or reorders an entry, the check fails and points to the broken one. The dashboard turns red, and if you forward the trail to your security tools, the original copy is already safely there.</div></details>
       <details><summary>Can we hand an auditor proof? <svg aria-hidden="true" focusable="false" class="icon"><use href="#i-plus"/></svg></summary><div class="a">Yes. The paid layer generates a signed attestation report from the audit: who ran which agent, what was allowed or blocked, and confirmation the log is intact. Your auditor can verify it on their own with our published key, and Letwrites can counter-sign it for the strongest assurance. A free or unlicensed install can't produce a valid one, so the report itself proves it came from a real, licensed, governed deployment.</div></details>
@@ -726,6 +778,7 @@ you   → approve                <span class="allow">published, logged as you</s
     <div class="cols">
       <div class="col"><h4>Product</h4><a href="#how">How it works</a><a href="#why">Why Letwrites</a><a href="#pricing">Pricing</a><a href="#faq">FAQ</a></div>
       <div class="col"><h4>Open source</h4><a href="#opensource">Self-host</a><a href="https://github.com/Lynne-ang/letwrites">GitHub</a><a href="onboard.html">Onboarding</a><a href="https://github.com/Lynne-ang/letwrites/blob/main/LICENSE">License (Apache-2.0)</a></div>
+      <div class="col"><h4>Customers</h4><a href="https://letwrites-billing-xo4k3oz3aa-as.a.run.app/license">Get your license key</a><a href="https://letwrites-billing-xo4k3oz3aa-as.a.run.app/license">Manage billing</a><a href="paid-onboard.html">Activate paid features</a></div>
       <div class="col"><h4>Company</h4><a href="mailto:hello@letwrites.com">Contact</a><a href="mailto:hello@letwrites.com">Security</a><a href="https://github.com/Lynne-ang/letwrites/issues">Issues</a></div>
       <div class="col"><h4>Legal</h4><a href="terms.html">Terms of Service</a><a href="privacy.html">Privacy Policy</a></div>
     </div>
