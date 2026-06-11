@@ -206,6 +206,11 @@ LETWRITES_LICENSE_PUBKEY=           <span class="c"># optional: bring-your-own /
 SIEM_URL=https://splunk.ourco.com:8088
 SIEM_TOKEN=...</div></div>
       </div>
+      <div class="step">
+        <div class="n">3</div>
+        <div><h3>Turn on self-service team groups</h3><p>So people manage their own sharing groups without filing an admin ticket, give the broker's service account two more permissions in BookStack: <b>Manage Users &amp; Roles</b> and <b>Manage Users</b> (it already has Manage Permissions for sharing). A "My Teams" panel then appears for everyone, and nobody can reach another team's content or escalate access. Miss this and group actions show a clear "grant these permissions" message, never a silent failure.</p>
+        <div class="mini">Settings ▸ Roles ▸ your broker service account ▸ enable "Manage Users &amp; Roles" + "Manage Users"</div></div>
+      </div>
     </div>
   </div>
 </section>
