@@ -30,6 +30,7 @@ describe('served page <script> blocks are valid JS', () => {
     expect(IMPORT_UI_ASSET_JS).toContain('applyBrokerVisibility');     // …then restricts via the broker
     expect(IMPORT_UI_ASSET_JS).toContain('LW_SHARE_APPLY_URL');        // same-origin session route
     expect(IMPORT_UI_ASSET_JS).toContain('LW_GROUPS');                 // group picker from the session
+    expect(IMPORT_UI_ASSET_JS).toContain('LW_IS_ADMIN===false');       // hide "Only me" for non-admins (would lock them out)
   });
 });
 

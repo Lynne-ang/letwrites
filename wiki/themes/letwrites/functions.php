@@ -237,6 +237,10 @@ $letwritesModels = [
                 ->orderBy('display_name')->get(['id', 'display_name']);
             return response()->json([
                 'enabled' => true,
+                // "Only me" (deny-all, no role grant) only works for admins — BookStack bypasses content
+                // permissions for them. A non-admin who picks it locks themselves out of their own
+                // content, so the UI offers it to admins only.
+                'isAdmin' => auth()->user()->roles()->where('system_name', 'admin')->exists(),
                 'groups' => $roles->map(fn ($r) => ['id' => $r->id, 'name' => (string) $r->display_name])->values(),
             ]);
         });
@@ -329,6 +333,9 @@ $letwritesModels = [
             // (their API token can't set permissions). When on, hand the page the user's groups directly
             // (same source as /letwrites/share-context) so the group picker works without an admin token.
             $shareOn = $selfServiceOn();
+            // "Only me" visibility only works for admins (they bypass content permissions); a non-admin
+            // who picks it locks themselves out of their own import. The page offers it to admins only.
+            $isAdmin = auth()->user()->roles()->where('system_name', 'admin')->exists();
             $groups = [];
             if ($shareOn) {
                 try {
@@ -366,6 +373,7 @@ $letwritesModels = [
                 // Broker-backed visibility for non-admins: the picker uses these groups, and the page
                 // restricts the created books via /letwrites/share-apply (same-origin, session-authed).
                 . 'window.LW_SHARE_ENABLED=' . ($shareOn ? 'true' : 'false') . ';'
+                . 'window.LW_IS_ADMIN=' . ($isAdmin ? 'true' : 'false') . ';'
                 . 'window.LW_GROUPS=' . json_encode($groups) . ';'
                 . 'window.LW_SHARE_APPLY_URL=' . json_encode('/letwrites/share-apply') . ';'
                 . 'var s=document.createElement("script");s.src="/import/ui.js";document.body.appendChild(s);';

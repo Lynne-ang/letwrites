@@ -75,9 +75,12 @@ header a.logo::before{content:"";display:inline-block;width:30px;height:30px;mar
     m.appendChild(el('h3','Who can see this?'));
     m.appendChild(el('div','"'+entity.name+'" — your AI agents honor the same rule.','sub'));
     var visEveryone=el('label');var r1=el('input');r1.type='radio';r1.name='lwvis';r1.value='inherit';r1.checked=true;visEveryone.appendChild(r1);visEveryone.appendChild(document.createTextNode(' Everyone who can reach its space'));
-    var visMe=el('label');var r3=el('input');r3.type='radio';r3.name='lwvis';r3.value='only-me';visMe.appendChild(r3);visMe.appendChild(document.createTextNode(' Only me (owner + admins)'));
+    var visMe=el('label');var r3=el('input');r3.type='radio';r3.name='lwvis';r3.value='only-me';visMe.appendChild(r3);visMe.appendChild(document.createTextNode(' Only me (admins only)'));
     var visRestrict=el('label');var r2=el('input');r2.type='radio';r2.name='lwvis';r2.value='restricted';visRestrict.appendChild(r2);visRestrict.appendChild(document.createTextNode(' Only the groups I choose'));
-    m.appendChild(visEveryone);m.appendChild(visMe);m.appendChild(visRestrict);
+    // "Only me" = deny-all with no role grant; it only works for admins (they bypass content perms). A
+    // non-admin who picked it would lose access to their own content, so show it to admins only. r3 stays
+    // detached for non-admins (never checked), so the apply logic below safely falls through to inherit.
+    m.appendChild(visEveryone);if(ctx.isAdmin)m.appendChild(visMe);m.appendChild(visRestrict);
     var gwrap=el('div');gwrap.style.display='none';
     var gsel=el('select');gsel.multiple=true;(ctx.groups||[]).forEach(function(g){var o=el('option',g.name);o.value=String(g.id);gsel.appendChild(o);});
     var lvl=el('select');[['viewer','View only'],['editor','View & edit'],['manager','Manage']].forEach(function(p){var o=el('option',p[1]);o.value=p[0];lvl.appendChild(o);});

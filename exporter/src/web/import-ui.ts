@@ -92,6 +92,10 @@ export const IMPORT_UI_MARKUP = `<div id="lw-import-root"><div class="wrap">
 // (in-wiki asset). NOTE: keep "\\n" double-escaped — it must emit a backslash-n in the output JS.
 export const IMPORT_UI_SCRIPT = `
   var $=function(s){return document.querySelector(s);};
+  // "Only me" visibility = deny-all with no role grant; it only works for admins (they bypass content
+  // permissions). A non-admin who picked it would lock themselves out of their own import — so the
+  // in-wiki page sets LW_IS_ADMIN=false for non-admins and we hide that option (Everyone / groups stay).
+  if(window.LW_IS_ADMIN===false){var _om=document.querySelector('input[name=lwvis][value=only-me]');if(_om&&_om.parentNode&&_om.parentNode.style)_om.parentNode.style.display='none';}
   // When embedded in the wiki, the host page knows its own domain (origin) and the signed-in user,
   // so it sets LW_IMPORT_BASE (and LW_TOKEN_URL). Prefill + HIDE the URL field — the domain is
   // auto-detected, no need to retype it. The standalone page leaves these unset and shows the field.
