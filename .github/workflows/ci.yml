@@ -1,0 +1,43 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        pkg: [exporter, engine]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install
+        working-directory: ${{ matrix.pkg }}
+        run: npm ci
+      - name: Test
+        working-directory: ${{ matrix.pkg }}
+        run: npm test
+      - name: Build
+        working-directory: ${{ matrix.pkg }}
+        run: npm run build
+
+  theme:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+      - name: Lint theme PHP (syntax only — no BookStack needed)
+        run: |
+          php -l wiki/themes/letwrites/functions.php
+          php -l wiki/themes/letwrites/lib/assertion.php
+          php -l wiki/themes/letwrites/lib/assertion-test.php
+      - name: Assertion contract vector (PHP must match the Node broker)
+        run: php wiki/themes/letwrites/lib/assertion-test.php
+      - name: Lint deploy shell scripts
+        run: for f in wiki/deploy/*.sh; do echo "checking $f"; bash -n "$f"; done

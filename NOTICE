@@ -15,5 +15,7 @@ repository's license, used under their own terms):
 - Caddy — Apache-2.0 — https://caddyserver.com/
 - MariaDB — GPL-2.0 (server, used as an unmodified container) — https://mariadb.org/
 
-Node dependencies are listed in each package's package.json and carry their
-own licenses.
+Node dependencies are listed in each package's package.json and carry their own
+(permissive: MIT / BSD / ISC / Apache-2.0) licenses. When built container images are
+distributed, a THIRD-PARTY-NOTICES manifest of bundled dependency licenses is generated
+at build time (`npx license-checker` per package).

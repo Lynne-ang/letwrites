@@ -48,5 +48,7 @@ proprietary anyway.)
 
 ## Trademarks
 
-The Apache-2.0 grant covers the code, not the name/marks. "Letwrites" (working name)
-and the logo are not licensed for use in a way that implies endorsement.
+The Apache-2.0 grant covers the code, not the name/marks. "Letwrites" and the logo are
+not licensed for use in a way that implies endorsement. Permitted nominative use (e.g.
+"runs on Letwrites", "compatible with Letwrites") is fine; a modified or rebranded fork
+must not present itself under the Letwrites name or logo. See `TRADEMARK.md` for details.

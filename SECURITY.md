@@ -28,6 +28,20 @@ before any public disclosure. Coordinated disclosure is appreciated.
 - **Fail-open behavior** — any case where a permission-service failure results in
   content being returned instead of denied.
 
+## Data handling (for your privacy/DPIA review)
+
+Everything runs on your infrastructure; Letwrites (the vendor) never receives your
+content or logs. Two stores worth noting when you scope a DPIA:
+
+- **Audit log** (`engine`, hash-chained JSONL): each record is `{ timestamp, userId,
+  query, resourceId, decision }`. It stores the **raw query text**, which can contain
+  sensitive terms, alongside the user id. Treat it as a personal-data store: set
+  retention/rotation and access controls, and include it in your DSAR/erasure process.
+  You are the data controller for this log; we cannot see it.
+- **Wiki content + uploads** live in your BookStack database and storage on your servers.
+
+If you need the query field hashed or redacted, open an issue — it's a planned config option.
+
 ## Scope
 
 This policy covers the open-source core in this repository. The Enterprise tier
