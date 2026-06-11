@@ -248,15 +248,18 @@ without holding `user-roles-manage` — the broker does it for them, gated by a 
 This runs through the **enterprise share broker** (`letwrites_share`), so it needs the same setup as
 in-wiki sharing — `LETWRITES_SHARE_SECRET` + `LETWRITES_SHARE_URL`, broker licensed and reachable.
 
-**One extra permission on the broker's service account.** Set-visibility only needed "Manage
-Permissions"; group operations also create roles and assign users. So the broker's service-account
-role (`LETWRITES_BROKER_TOKEN_*`) must additionally have:
-- **Manage Users & Roles** (`user-roles-manage`)
-- **Manage Users** (`users-manage`)
-
-Without them, every group action 403s — and the broker surfaces a clear, actionable error
-("the broker service-account role is missing a required permission…") rather than a silent failure.
-These permissions stay on the **broker's** account only; Contributors never get them.
+**One command provisions the broker's service-account role** with exactly what it needs — Manage
+Permissions (set-visibility) **plus** Manage Users & Roles + Manage Users (groups):
+```bash
+BOOKSTACK_URL=https://docs.acme.com \
+BOOKSTACK_TOKEN_ID=<admin token id> BOOKSTACK_TOKEN_SECRET=<secret> \
+  ./seed-broker-role.sh
+# then create a user in the 'Letwrites Broker' role + an API token → LETWRITES_BROKER_TOKEN_ID/SECRET
+```
+Set-visibility only needed `restrictions-manage-all`; group ops also need `user-roles-manage` +
+`users-manage`. Without them every group action 403s — but the broker surfaces a clear, actionable
+error ("grant Manage Users & Roles…") rather than a silent failure. These permissions stay on the
+**broker's** account only; Contributors never get them.
 
 The "admin invites your team" flow sends email, so it needs SMTP. Without it, an admin can
 still create accounts by hand, but emailed invites, password resets, and notifications stay
