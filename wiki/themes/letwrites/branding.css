@@ -187,15 +187,31 @@ header a.logo::before{content:"";display:inline-block;width:30px;height:30px;mar
       });
     });}
     function addMember(g){
-      var q=prompt('Add a member to "'+g.name+'" by email or name:','');
-      if(!q||q.trim().length<2)return;
-      api({op:'users',q:q.trim()}).then(function(d){
-        var us=(d&&d.users)||[];
-        if(!us.length){say('No user matched "'+q+'".');return;}
-        if(us.length>1){say(us.length+' users matched — be more specific (email).');return;}
-        var u=us[0];
-        if(confirm('Add '+u.name+' <'+u.email+'> to "'+g.name+'"?'))api({op:'add-member',id:g.id,userId:u.id}).then(function(r){say(r&&r.ok?('Added '+u.name+'.'):'Failed to add.',r&&r.ok);});
-      });
+      // Inline member picker: search box + live results with per-user "Add" — no prompt()/confirm().
+      list.innerHTML='';
+      var back=el('button','‹ Back');back.addEventListener('click',refresh);list.appendChild(back);
+      list.appendChild(el('h3','Add a member to "'+g.name+'"'));
+      var sw=el('div',null,'lw-team-create');var inp=el('input');inp.placeholder='Search by email or name';var go=el('button','Search');go.className='primary';
+      sw.appendChild(inp);sw.appendChild(go);list.appendChild(sw);
+      var results=el('div');list.appendChild(results);
+      function search(){
+        var q=inp.value.trim();results.innerHTML='';
+        if(q.length<2){say('Type at least 2 characters.');return;}
+        say('Searching…',true);
+        api({op:'users',q:q}).then(function(d){
+          var us=(d&&d.users)||[];msg.textContent='';
+          if(!us.length){results.appendChild(el('div','No user matched "'+q+'".','sub'));return;}
+          us.forEach(function(u){
+            var row=el('div',null,'lw-team-row');row.appendChild(el('span',u.name+' · '+u.email));
+            var add=el('button','Add');add.className='primary';
+            add.addEventListener('click',function(){add.disabled=true;api({op:'add-member',id:g.id,userId:u.id}).then(function(r){if(r&&r.ok){add.textContent='Added ✓';}else{add.disabled=false;say('Failed to add '+u.name+'.');}});});
+            row.appendChild(add);results.appendChild(row);
+          });
+        });
+      }
+      go.addEventListener('click',search);
+      inp.addEventListener('keydown',function(e){if(e.key==='Enter')search();});
+      inp.focus();
     }
     var cwrap=el('div',null,'lw-team-create');var inp=el('input');inp.placeholder='New team name';var mk=el('button','Create');mk.className='primary';
     mk.addEventListener('click',function(){var n=inp.value.trim();if(!n)return;api({op:'create',name:n}).then(function(d){if(d&&d.ok){inp.value='';refresh();say('Created "'+n+'".',true);}else say('Create failed: '+((d&&d.error)||'unknown'));});});

@@ -239,7 +239,24 @@ non-admin owner bypass, so a deny-all-no-roles restriction would lock the import
 content. Restrict to a role you belong to instead. (Admins bypass all content permissions, so
 "only me" works only for them.)
 
-## Email & invites (SMTP)
+## Self-service team groups (paid governance feature)
+
+Lets Contributors create + run their **own** groups (to share content with) without an admin and
+without holding `user-roles-manage` — the broker does it for them, gated by a zero-permission template
++ owner-marker so escalation is impossible. The "My Teams" panel appears on the home/listing pages.
+
+This runs through the **enterprise share broker** (`letwrites_share`), so it needs the same setup as
+in-wiki sharing — `LETWRITES_SHARE_SECRET` + `LETWRITES_SHARE_URL`, broker licensed and reachable.
+
+**One extra permission on the broker's service account.** Set-visibility only needed "Manage
+Permissions"; group operations also create roles and assign users. So the broker's service-account
+role (`LETWRITES_BROKER_TOKEN_*`) must additionally have:
+- **Manage Users & Roles** (`user-roles-manage`)
+- **Manage Users** (`users-manage`)
+
+Without them, every group action 403s — and the broker surfaces a clear, actionable error
+("the broker service-account role is missing a required permission…") rather than a silent failure.
+These permissions stay on the **broker's** account only; Contributors never get them.
 
 The "admin invites your team" flow sends email, so it needs SMTP. Without it, an admin can
 still create accounts by hand, but emailed invites, password resets, and notifications stay
