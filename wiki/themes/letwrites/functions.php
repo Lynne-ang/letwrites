@@ -310,6 +310,54 @@ $letwritesModels = [
             }
         });
 
+        // Self-service team GROUPS (paid governance feature). Same trust path as share-apply: mint a
+        // session-bound assertion and proxy to the broker, which holds the privileged token and enforces
+        // the zero-permission template + owner-gating. The browser never sees the secret or the broker.
+        // One route dispatches by `op`; group ops bind entityType='group' (create/list/search use the
+        // sentinel id 1 = "no target"; the rest bind the role id). No assertion-format change.
+        Route::post('/letwrites/group', function (Request $request) use ($selfServiceOn, $mint): JsonResponse {
+            if (!auth()->check()) return response()->json(['ok' => false, 'error' => 'not signed in'], 401);
+            if (!$selfServiceOn()) return response()->json(['ok' => false, 'error' => 'self-service is off'], 503);
+            $secret = (string) env('LETWRITES_SHARE_SECRET', '');
+            $brokerUrl = rtrim((string) env('LETWRITES_SHARE_URL', ''), '/');
+            if ($secret === '' || $brokerUrl === '') return response()->json(['ok' => false, 'error' => 'groups not configured'], 503);
+
+            $uid = auth()->user()->id;
+            $op = (string) $request->input('op');
+            $gid = (int) $request->input('id', 0);
+            $SENT = 1; // create/list/search have no target entity → bind a positive sentinel
+            $map = [
+                'mine'           => ['GET',  '/groups/mine',           'group-read',          $SENT, []],
+                'users'          => ['GET',  '/groups/users',          'group-read',          $SENT, []],
+                'create'         => ['POST', '/groups/create',         'group-create',        $SENT, ['name' => (string) $request->input('name', '')]],
+                'rename'         => ['POST', '/groups/rename',         'group-rename',        $gid,  ['id' => $gid, 'name' => (string) $request->input('name', '')]],
+                'add-member'     => ['POST', '/groups/add-member',     'group-add-member',    $gid,  ['id' => $gid, 'userId' => (int) $request->input('userId', 0)]],
+                'remove-member'  => ['POST', '/groups/remove-member',  'group-remove-member', $gid,  ['id' => $gid, 'userId' => (int) $request->input('userId', 0)]],
+                'shared-content' => ['GET',  '/groups/shared-content', 'group-read',          $gid,  []],
+                'delete'         => ['POST', '/groups/delete',         'group-delete',        $gid,  ['id' => $gid]],
+            ];
+            if (!isset($map[$op])) return response()->json(['ok' => false, 'error' => 'bad op'], 422);
+            [$method, $path, $action, $entityId, $payload] = $map[$op];
+            if (in_array($op, ['rename', 'add-member', 'remove-member', 'shared-content', 'delete'], true) && $gid <= 0) {
+                return response()->json(['ok' => false, 'error' => 'group id required'], 422);
+            }
+            $assertion = $mint($secret, $uid, $action, 'group', (int) $entityId);
+            try {
+                $http = \Illuminate\Support\Facades\Http::withHeaders(['X-Letwrites-Assertion' => $assertion])->connectTimeout(5)->timeout(40);
+                if ($method === 'GET') {
+                    $query = [];
+                    if ($op === 'users') $query['q'] = (string) $request->input('q', '');
+                    if ($op === 'shared-content') $query['id'] = $gid;
+                    $resp = $http->get("{$brokerUrl}{$path}", $query);
+                } else {
+                    $resp = $http->post("{$brokerUrl}{$path}", $payload);
+                }
+                return response()->json($resp->json() ?? ['ok' => false, 'error' => 'broker unreachable'], $resp->status());
+            } catch (\Throwable $e) {
+                return response()->json(['ok' => false, 'error' => 'could not reach the groups service'], 502);
+            }
+        });
+
         // In-wiki import (A1): a native-feeling page on the wiki's OWN domain that renders the import
         // UI in the Letwrites brand and loads the SHARED UI asset from the import service
         // (/import/ui.js — same source as the standalone page, no duplication). The heavy upload goes

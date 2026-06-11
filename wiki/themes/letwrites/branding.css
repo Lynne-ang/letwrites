@@ -46,6 +46,12 @@ header a.logo::before{content:"";display:inline-block;width:30px;height:30px;mar
 #lw-share-modal button.primary{background:#2f6bff;color:#fff;border-color:#2f6bff}
 #lw-share-msg{font-size:13px;margin-top:10px}
 #lw-import-btn{position:fixed;left:18px;bottom:18px;z-index:9998;background:#fff;color:#2f6bff;border:1px solid #d9e4ff;border-radius:24px;padding:10px 16px;font:600 13px/1 inherit;text-decoration:none;box-shadow:0 4px 14px rgba(0,0,0,.12)}
+#lw-teams-btn{position:fixed;left:18px;bottom:62px;z-index:9998;background:#fff;color:#2f6bff;border:1px solid #d9e4ff;border-radius:24px;padding:10px 16px;font:600 13px/1 inherit;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.12)}
+#lw-share-modal .lw-team-row{display:flex;gap:8px;align-items:center;justify-content:space-between;margin:7px 0;padding:7px 10px;border:1px solid #eef1f6;border-radius:9px}
+#lw-share-modal .lw-team-row span{font-weight:600}
+#lw-share-modal .lw-team-row button{padding:5px 10px;font-size:12px}
+#lw-share-modal .lw-team-create{display:flex;gap:8px;margin-top:14px}
+#lw-share-modal .lw-team-create input{flex:1;padding:9px 11px;border:1px solid #e6e9f0;border-radius:9px}
 .lw-empty{background:#eef3ff;border:1px solid #d9e4ff;border-radius:12px;padding:20px 22px;margin:0 0 22px}
 .lw-empty h3{margin:0 0 6px;font-size:18px} .lw-empty p{margin:0 0 14px;color:#5b6678}
 .lw-empty-row{display:flex;gap:10px;flex-wrap:wrap}
@@ -138,6 +144,65 @@ header a.logo::before{content:"";display:inline-block;width:30px;height:30px;mar
       row.appendChild(create);row.appendChild(imp2);box.appendChild(row);
       main.insertBefore(box, main.firstChild);
     });
+  }
+})();
+</script>
+<script>
+(function(){
+  // My Teams — self-service group management (paid governance feature). A button on home/listing
+  // pages opens a modal to create groups, rename, manage members, and delete (blocked while a group
+  // is still shared — the broker returns WHERE). All ops proxy through /letwrites/group → the broker,
+  // which enforces the zero-permission template + owner-gating. No backslashes (SQL-literal head).
+  var p=location.pathname;
+  if(!(p==='/'||p.indexOf('/books')===0||p.indexOf('/shelves')===0)) return;
+  var el=function(t,txt,cls){var n=document.createElement(t);if(txt!=null)n.textContent=String(txt);if(cls)n.className=cls;return n;};
+  var csrf=function(){var m=document.querySelector('meta[name=token]');return m?m.getAttribute('content'):'';};
+  var api=function(body){return fetch('/letwrites/group',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf(),'X-Requested-With':'XMLHttpRequest'},body:JSON.stringify(body||{})}).then(function(r){return r.json().catch(function(){return{ok:false};});});};
+  // Only surface the button when groups are actually available (self-service on + signed in).
+  api({op:'mine'}).then(function(d){
+    if(!d||(d.ok!==true&&!d.groups))return;
+    var btn=el('button','My Teams');btn.id='lw-teams-btn';btn.addEventListener('click',open);
+    function add(){if(document.body)document.body.appendChild(btn);}
+    if(document.readyState!=='loading')add();else document.addEventListener('DOMContentLoaded',add);
+  }).catch(function(){});
+
+  function open(){
+    var ov=el('div',null);ov.id='lw-share-ov';
+    var m=el('div',null);m.id='lw-share-modal';
+    m.appendChild(el('h3','My Teams'));
+    m.appendChild(el('div','Groups you own. Share content with a group from its "Who can see this?" panel.','sub'));
+    var list=el('div');m.appendChild(list);
+    var msg=el('div');msg.id='lw-share-msg';
+    function say(t,good){msg.style.color=good?'#0f9d58':'#dc2626';msg.textContent=t;}
+    function refresh(){api({op:'mine'}).then(function(d){
+      list.innerHTML='';
+      var gs=(d&&d.groups)||[];
+      if(!gs.length)list.appendChild(el('div','No teams yet — create one below.','sub'));
+      gs.forEach(function(g){
+        var row=el('div',null,'lw-team-row');row.appendChild(el('span',g.name));
+        var ren=el('button','Rename');ren.addEventListener('click',function(){var nn=prompt('New name for "'+g.name+'":',g.name);if(nn&&nn.trim())api({op:'rename',id:g.id,name:nn.trim()}).then(function(r){if(r&&r.ok)refresh();else say('Rename failed.');});});
+        var mem=el('button','Add member');mem.addEventListener('click',function(){addMember(g);});
+        var del=el('button','Delete');del.addEventListener('click',function(){api({op:'delete',id:g.id}).then(function(r){if(r&&r.ok){refresh();say('Deleted "'+g.name+'".',true);}else if(r&&r.books&&r.books.length)say('"'+g.name+'" is still shared to: '+r.books.map(function(b){return b.name;}).join(', ')+'. Un-share those first.');else say('Could not delete: '+((r&&r.error)||'unknown'));});});
+        row.appendChild(ren);row.appendChild(mem);row.appendChild(del);list.appendChild(row);
+      });
+    });}
+    function addMember(g){
+      var q=prompt('Add a member to "'+g.name+'" by email or name:','');
+      if(!q||q.trim().length<2)return;
+      api({op:'users',q:q.trim()}).then(function(d){
+        var us=(d&&d.users)||[];
+        if(!us.length){say('No user matched "'+q+'".');return;}
+        if(us.length>1){say(us.length+' users matched — be more specific (email).');return;}
+        var u=us[0];
+        if(confirm('Add '+u.name+' <'+u.email+'> to "'+g.name+'"?'))api({op:'add-member',id:g.id,userId:u.id}).then(function(r){say(r&&r.ok?('Added '+u.name+'.'):'Failed to add.',r&&r.ok);});
+      });
+    }
+    var cwrap=el('div',null,'lw-team-create');var inp=el('input');inp.placeholder='New team name';var mk=el('button','Create');mk.className='primary';
+    mk.addEventListener('click',function(){var n=inp.value.trim();if(!n)return;api({op:'create',name:n}).then(function(d){if(d&&d.ok){inp.value='';refresh();say('Created "'+n+'".',true);}else say('Create failed: '+((d&&d.error)||'unknown'));});});
+    cwrap.appendChild(inp);cwrap.appendChild(mk);m.appendChild(cwrap);m.appendChild(msg);
+    var row=el('div',null,'row');var close=el('button','Close');close.addEventListener('click',function(){document.body.removeChild(ov);});row.appendChild(close);m.appendChild(row);
+    ov.appendChild(m);ov.addEventListener('click',function(e){if(e.target===ov)document.body.removeChild(ov);});
+    document.body.appendChild(ov);ov.className='on';refresh();
   }
 })();
 </script>
