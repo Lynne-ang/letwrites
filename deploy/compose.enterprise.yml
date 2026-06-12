@@ -16,7 +16,7 @@
 # Air-gapped? Set LETWRITES_LICENSE=<offline token> instead of LETWRITES_ACTIVATION (ask us for one).
 #
 # IMAGE: replace the tag below with the published Letwrites enterprise image once distribution is set.
-x-ent-image: &ent_image asia-southeast1-docker.pkg.dev/letwrites-web/letwrites/enterprise:v4
+x-ent-image: &ent_image asia-southeast1-docker.pkg.dev/letwrites-web/letwrites/enterprise:v5
 
 services:
   # Overlay extra env onto the open-core bookstack so its theme can mint share assertions + reach the broker.
