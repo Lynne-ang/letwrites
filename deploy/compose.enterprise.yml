@@ -45,6 +45,7 @@ services:
       - LETWRITES_SEAT_ENFORCE=${LETWRITES_SEAT_ENFORCE:-block}
       - OIDC_ISSUER=${OIDC_ISSUER:-}
       - OIDC_AUDIENCE=${OIDC_AUDIENCE:-}
+      - LETWRITES_TRUST_HEADER=${LETWRITES_TRUST_HEADER:-}        # set =1 to allow trusted-header auth (else use OIDC)
     volumes: [gw_state:/data]
 
   letwrites_share:

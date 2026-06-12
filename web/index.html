@@ -581,14 +581,14 @@ you   → approve                <span class="allow">published, logged as you</s
     </div>
     <div class="estimator reveal">
       <div class="est-row">
-        <label for="teamSlider">Your team size</label>
-        <output id="teamN" for="teamSlider">50 people</output>
+        <label for="teamSlider">People whose agent writes</label>
+        <output id="teamN" for="teamSlider">50 writers</output>
       </div>
-      <input id="teamSlider" type="range" min="5" max="1000" value="50" step="5" aria-label="Team size" />
+      <input id="teamSlider" type="range" min="5" max="1000" value="50" step="5" aria-label="Number of people whose agent writes to the wiki" />
       <div class="est-out">
         <div class="est-price"><span id="estAnnual">$1,800</span> <small>/ year, self-hosted</small></div>
         <div class="est-save" id="estSave">vs Confluence you save <b>$1,200</b> a year (40%)</div>
-        <div class="est-note" id="estNote">$3 per governed seat / month · 14-day free trial · billed monthly or annually</div>
+        <div class="est-note" id="estNote">You pay only for people whose agent writes — readers are free. $3/seat/mo · 14-day free trial · billed monthly or annually</div>
       </div>
     </div>
     <div class="price-grid stagger reveal">
@@ -662,7 +662,7 @@ you   → approve                <span class="allow">published, logged as you</s
     var N=parseInt(s.value,10), r=calc(N);
     var pct=(N-s.min)/(s.max-s.min)*100;
     s.style.background='linear-gradient(90deg,var(--accent) '+pct+'%,var(--border2) '+pct+'%)';
-    elN.textContent=N.toLocaleString('en-US')+' people';
+    elN.textContent=N.toLocaleString('en-US')+' writers';
     var over=r.billable>500;
     small.style.display=over?'none':'';
     if(over){
@@ -676,7 +676,7 @@ you   → approve                <span class="allow">published, logged as you</s
       if(r.save>0) elS.innerHTML='vs Confluence you save <b>'+fmt(r.save)+'</b> a year ('+Math.round(r.save/r.conf*100)+'%)';
       else elS.innerHTML='Teams your size usually start on <b>Free</b> →';
     }
-    elNote.textContent='$3 per seat / month, billed monthly or yearly. 14-day free trial. Big teams pay less.';
+    elNote.textContent='You pay only for people whose agent writes — readers are free. $3/seat/mo, 14-day trial, billed monthly or yearly. Big teams pay less.';
   }
   s.addEventListener('input',render); render();
 })();
@@ -684,24 +684,25 @@ you   → approve                <span class="allow">published, logged as you</s
 
 <!-- SUBSCRIBE MODAL -->
 <div id="subModal" style="display:none;position:fixed;inset:0;background:rgba(11,18,32,.55);z-index:200;align-items:center;justify-content:center;padding:20px" role="dialog" aria-modal="true" aria-labelledby="subTitle">
-  <div style="background:#fff;border-radius:18px;max-width:420px;width:100%;padding:26px;box-shadow:0 24px 60px rgba(0,0,0,.3);position:relative;color:#0b1220">
-    <button type="button" id="subClose" aria-label="Close" style="position:absolute;top:12px;right:14px;border:0;background:none;font-size:24px;line-height:1;cursor:pointer;color:#64748b">&times;</button>
+  <div style="background:#13171e;border:1px solid #212833;border-radius:18px;max-width:420px;width:100%;padding:26px;box-shadow:0 24px 60px rgba(0,0,0,.5);position:relative;color:#e9edf3">
+    <button type="button" id="subClose" aria-label="Close" style="position:absolute;top:8px;right:8px;width:40px;height:40px;border:0;background:none;font-size:22px;line-height:1;cursor:pointer;color:#98a2b1;border-radius:8px">&times;</button>
     <h3 id="subTitle" style="margin:0 0 4px;font-size:20px">Subscribe to Team</h3>
-    <p style="margin:0 0 18px;color:#64748b;font-size:13.5px">14-day free trial · big teams pay less · cancel anytime.</p>
-    <div style="display:flex;gap:6px;background:#eef2fb;border-radius:10px;padding:4px;margin-bottom:16px">
-      <button type="button" id="mSegA" style="flex:1;border:0;border-radius:8px;padding:9px;font-weight:600;cursor:pointer">Annual</button>
-      <button type="button" id="mSegM" style="flex:1;border:0;border-radius:8px;padding:9px;font-weight:600;cursor:pointer">Monthly</button>
+    <p style="margin:0 0 18px;color:#98a2b1;font-size:13.5px">14-day free trial · big teams pay less · cancel anytime.</p>
+    <div role="tablist" aria-label="Billing period" style="display:flex;gap:6px;background:#0c0f14;border:1px solid #212833;border-radius:10px;padding:4px;margin-bottom:16px">
+      <button type="button" role="tab" id="mSegA" aria-pressed="true" style="flex:1;border:0;border-radius:8px;padding:9px;font-weight:600;cursor:pointer;background:transparent;color:#98a2b1">Annual</button>
+      <button type="button" role="tab" id="mSegM" aria-pressed="false" style="flex:1;border:0;border-radius:8px;padding:9px;font-weight:600;cursor:pointer;background:transparent;color:#98a2b1">Monthly</button>
     </div>
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-      <label for="mSeat" style="font-size:14px;color:#475569">Seats (agent writers)</label>
-      <input id="mSeat" type="number" min="1" max="500" value="10" style="width:92px;padding:9px;border:1px solid #cbd5e1;border-radius:8px;font-size:15px;text-align:center" />
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <label for="mSeat" style="font-size:14px;color:#98a2b1">Seats (agent writers)</label>
+      <input id="mSeat" type="number" min="1" max="500" value="10" style="width:92px;padding:9px;border:1px solid #2c3542;border-radius:8px;font-size:15px;text-align:center;background:#0c0f14;color:#e9edf3" />
     </div>
-    <div style="background:#f6f8fc;border-radius:12px;padding:14px 16px;margin-bottom:18px">
-      <div><span id="mTotal" style="font-size:28px;font-weight:700">$252</span> <small id="mUnit" style="color:#475569">/ year</small></div>
-      <div id="mBreak" style="font-size:12.5px;color:#64748b;margin-top:3px">14-day free trial</div>
+    <p style="margin:0 0 16px;font-size:12px;color:#828b99">Readers — people and agents that only read — are always free.</p>
+    <div style="background:#0c0f14;border:1px solid #212833;border-radius:12px;padding:14px 16px;margin-bottom:18px">
+      <div><span id="mTotal" style="font-size:28px;font-weight:700">$252</span> <small id="mUnit" style="color:#98a2b1">/ year</small></div>
+      <div id="mBreak" style="font-size:12.5px;color:#98a2b1;margin-top:3px">14-day free trial</div>
     </div>
     <a class="btn" id="mGo" href="#" style="width:100%;text-align:center;box-sizing:border-box">Continue to secure checkout →</a>
-    <p style="text-align:center;margin:12px 0 0;font-size:11.5px;color:#94a3b8">Powered by Stripe · 500+ seats? <a href="#contact" style="color:#94a3b8;text-decoration:underline">Talk to us</a></p>
+    <p style="text-align:center;margin:12px 0 0;font-size:11.5px;color:#828b99">Powered by Stripe · 500+ seats? <a href="#contact" style="color:#98a2b1;text-decoration:underline">Talk to us</a></p>
   </div>
 </div>
 <script>
@@ -716,18 +717,20 @@ you   → approve                <span class="allow">published, logged as you</s
   function grad(b,r1,r2,r3){return Math.min(b,100)*r1 + Math.min(Math.max(b-100,0),400)*r2 + Math.max(b-500,0)*r3;}
   function render(){
     var s=Math.max(1,Math.min(500,parseInt(seat.value,10)||1)), b=s, on=interval==='annual';
-    segA.style.background=on?'#fff':'transparent'; segA.style.color=on?'#0b1220':'#475569'; segA.style.boxShadow=on?'0 1px 2px rgba(0,0,0,.08)':'none';
-    segM.style.background=on?'transparent':'#fff'; segM.style.color=on?'#475569':'#0b1220'; segM.style.boxShadow=on?'none':'0 1px 2px rgba(0,0,0,.08)';
+    segA.style.background=on?'#2f6bff':'transparent'; segA.style.color=on?'#fff':'#98a2b1'; segA.setAttribute('aria-pressed',on?'true':'false');
+    segM.style.background=on?'transparent':'#2f6bff'; segM.style.color=on?'#98a2b1':'#fff'; segM.setAttribute('aria-pressed',on?'false':'true');
     tot.textContent=fmt(on?grad(b,36,30,24):grad(b,3,2.5,2));
     unit.textContent=on?'/ year':'/ month';
     brk.textContent='14-day free trial, then '+(on?'$36/seat/yr, $30 past 100':'$3/seat/mo, $2.50 past 100');
     go.href=BILL+'/checkout?interval='+interval+'&seats='+s;
   }
   function show(v){ modal.style.display=v?'flex':'none'; }
+  function trap(e){ if(e.key!=='Tab')return; var f=modal.querySelectorAll('button,input,a[href]'); if(!f.length)return; var a=f[0],z=f[f.length-1]; if(e.shiftKey&&document.activeElement===a){e.preventDefault();z.focus();} else if(!e.shiftKey&&document.activeElement===z){e.preventDefault();a.focus();} }
   open.onclick=function(){render();show(true);setTimeout(function(){seat.focus();},30);};
-  document.getElementById('subClose').onclick=function(){show(false);};
-  modal.onclick=function(e){ if(e.target===modal) show(false); };
-  document.addEventListener('keydown',function(e){ if(e.key==='Escape') show(false); });
+  document.getElementById('subClose').onclick=function(){show(false);open.focus();};
+  modal.onclick=function(e){ if(e.target===modal){show(false);open.focus();} };
+  document.addEventListener('keydown',function(e){ if(modal.style.display==='none')return; if(e.key==='Escape'){show(false);open.focus();} else trap(e); });
+  seat.onblur=function(){ seat.value=Math.max(1,Math.min(500,parseInt(seat.value,10)||1)); render(); };
   segA.onclick=function(){interval='annual';render();}; segM.onclick=function(){interval='monthly';render();};
   seat.oninput=render; render();
 })();
@@ -760,9 +763,10 @@ you   → approve                <span class="allow">published, logged as you</s
   <div class="wrap">
     <div class="box reveal">
       <h2>Run it against one Confluence space.</h2>
-      <p class="section-sub" style="margin:16px auto 32px">See the migration. Watch an agent get blocked from a doc it shouldn't see. Read the audit log. Then decide. It's free to try on your own server.</p>
+      <p class="section-sub" style="margin:16px auto 32px">Migrate free, watch an agent get blocked from a doc it shouldn't see, read the audit log. When you're ready for governed agent write-back, start a 14-day Team trial — cancel anytime.</p>
       <div class="cta-row" style="justify-content:center">
-        <a class="btn" href="#opensource">Self-host free <svg aria-hidden="true" focusable="false" class="icon"><use href="#i-arrow"/></svg></a>
+        <a class="btn" href="#pricing">Start a 14-day Team trial <svg aria-hidden="true" focusable="false" class="icon"><use href="#i-arrow"/></svg></a>
+        <a class="btn ghost" href="#opensource">Self-host free</a>
         <a class="btn ghost" href="mailto:hello@letwrites.com">Talk to us</a>
       </div>
     </div>
