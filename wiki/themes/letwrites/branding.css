@@ -78,9 +78,11 @@ header a.logo::before{content:"";display:inline-block;width:30px;height:30px;mar
   --lw-border:rgba(55,53,47,.09);/* hairline */
   --lw-border-solid:#eaeae8;
   --lw-hover:rgba(55,53,47,.055);/* subtle row/button hover */
-  --lw-accent:#2383e2;           /* Notion blue (links/primary) */
+  --lw-accent:#2383e2;           /* Notion blue (links + active highlights) */
   --lw-accent-ink:#ffffff;
   --lw-accent-soft:rgba(35,131,226,.12);
+  --lw-primary:#37352f;          /* primary button = Notion near-black */
+  --lw-primary-hover:#504b43;
   --lw-radius:6px;
   --lw-radius-lg:10px;
   /* Recolor BookStack's OWN configurable variables so its native components follow. */
@@ -174,9 +176,9 @@ header #header-search input::placeholder{ color:var(--lw-text-muted) !important;
 }
 .button:hover, button.button:hover, a.button:hover{ background:var(--lw-hover) !important; }
 .button.primary, button.button.primary, .button.outline.primary, input[type=submit]{
-  background:var(--lw-accent) !important; color:var(--lw-accent-ink) !important; border-color:var(--lw-accent) !important;
+  background:var(--lw-primary) !important; color:#fff !important; border-color:var(--lw-primary) !important;
 }
-.button.primary:hover, button.button.primary:hover, input[type=submit]:hover{ filter:brightness(.94); background:var(--lw-accent) !important; }
+.button.primary:hover, button.button.primary:hover, input[type=submit]:hover{ background:var(--lw-primary-hover) !important; border-color:var(--lw-primary-hover) !important; }
 .text-button{ color:var(--lw-accent) !important; }
 /* Visible focus ring for keyboard users (accessibility) */
 .button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible{
@@ -251,6 +253,11 @@ body.dark-mode .card, body.dark-mode .grid-card{ background:#202020 !important; 
 body.dark-mode .button, body.dark-mode input, body.dark-mode select, body.dark-mode textarea{
   background:#262626 !important; color:var(--lw-text) !important;
 }
+/* near-black primary would vanish on a dark surface → invert to a light button with dark text */
+body.dark-mode .button.primary, body.dark-mode button.button.primary, body.dark-mode input[type=submit]{
+  background:#e9e9e7 !important; color:#191919 !important; border-color:#e9e9e7 !important;
+}
+body.dark-mode .button.primary:hover, body.dark-mode button.button.primary:hover, body.dark-mode input[type=submit]:hover{ background:#cfcfca !important; border-color:#cfcfca !important; }
 
 /* ---- Respect reduced-motion ---- */
 @media (prefers-reduced-motion: reduce){
