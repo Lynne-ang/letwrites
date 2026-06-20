@@ -39,13 +39,15 @@ export class BookStackWriteClient {
     const sep = path.includes('?') ? '&' : '?';
     const out: any[] = [];
     const pageSize = 500;
-    for (let offset = 0; ; offset += pageSize) {
-      const r = await this.req('GET', `${path}${sep}count=${pageSize}&offset=${offset}`);
+    const MAX_PAGES = 400; // safety cap (~200k entities) so a server that ignores offset/total can't loop forever
+    for (let page = 0; page < MAX_PAGES; page++) {
+      const r = await this.req('GET', `${path}${sep}count=${pageSize}&offset=${page * pageSize}`);
       const data: any[] = r.data ?? [];
       out.push(...data);
       const total = typeof r.total === 'number' ? r.total : undefined;
-      if (data.length < pageSize || (total != null && out.length >= total)) break;
+      if (data.length < pageSize || (total != null && out.length >= total)) return out;
     }
+    console.error(`[write-client] pagination hit ${MAX_PAGES}-page cap on ${path} — results may be truncated`);
     return out;
   }
   private match<T extends { name?: string }>(items: T[], name: string): T | undefined {

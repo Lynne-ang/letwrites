@@ -118,9 +118,11 @@ const writeLocks = new Map<string, Promise<unknown>>();
 function withWriteLock<T>(key: string, fn: () => Promise<T>): Promise<T> {
   const prev = writeLocks.get(key) ?? Promise.resolve();
   const run = prev.then(fn, fn);
-  writeLocks.set(key, run.then(() => undefined, () => undefined));
-  // best-effort cleanup so the map can't grow unbounded
-  run.finally(() => { if (writeLocks.get(key) === undefined) writeLocks.delete(key); }).catch(() => {});
+  // Store the settled tail and evict it by IDENTITY once it resolves — but only if no newer writer
+  // has replaced it. (Comparing to `undefined` never matched, so the map used to grow forever.)
+  const tail = run.then(() => undefined, () => undefined);
+  writeLocks.set(key, tail);
+  tail.finally(() => { if (writeLocks.get(key) === tail) writeLocks.delete(key); }).catch(() => {});
   return run;
 }
 
