@@ -1,10 +1,11 @@
 #!/usr/bin/env node
-import { readFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { exportSpace } from './exporter.js';
 import { generatePreview } from './preview.js';
 import { planImport, stripFrontMatter, type ManifestPage } from './import-planner.js';
 import { runImport } from './importer.js';
+import { buildIntegrityReport, renderIntegrityReport } from './integrity.js';
 import { BookStackImportClient } from './bookstack-import-client.js';
 import { oauthBaseUrl } from './confluence-oauth.js';
 import type { ConfluenceConfig } from './types.js';
@@ -74,7 +75,14 @@ async function main() {
   console.log(`\n[2/3] Planning import into Letwrites (BookStack)`);
   const manifest = JSON.parse(await readFile(join(outDir, 'manifest.json'), 'utf8')) as { pages: ManifestPage[] };
   const md = new Map<string, string>();
-  for (const p of manifest.pages) md.set(p.id, stripFrontMatter(await readFile(join(outDir, p.path), 'utf8').catch(() => '')));
+  // Track pages whose exported file can't be read — do NOT silently substitute '' (that hides a
+  // dropped page: the planner would still import it empty and counts would line up). These feed the
+  // integrity report so the verdict is INCOMPLETE instead of a false COMPLETE.
+  const readFailures: { page: string; reason: string }[] = [];
+  for (const p of manifest.pages) {
+    try { md.set(p.id, stripFrontMatter(await readFile(join(outDir, p.path), 'utf8'))); }
+    catch (e) { readFailures.push({ page: p.title || p.id, reason: `export file unreadable: ${(e as Error).message}` }); }
+  }
   const plan = planImport(manifest.pages, (p) => md.get(p.id) ?? '');
 
   // 3) Import (requires Letwrites/BookStack creds)
@@ -96,8 +104,30 @@ async function main() {
   }
   console.log(`\n[3/3] Importing into ${creds.baseUrl}`);
   const r = await runImport(plan, client, console.log, outDir);
-  console.log(`\nDone. ${r.books} books, ${r.chapters} chapters, ${r.pages} pages, ${r.imagesUploaded} images. ` +
-    `Open ${creds.baseUrl} to see your migrated wiki.`);
+  console.log(`\nDone. ${r.books} books, ${r.chapters} chapters, ${r.pages} pages, ${r.imagesUploaded} images.`);
+
+  // INTEGRITY GATE: the one-command path MUST prove nothing was silently lost. Build the same signed
+  // report the `import` CLI produces, compare against the SOURCE page count, fold in unreadable pages,
+  // write it next to the export, and EXIT NON-ZERO on INCOMPLETE so a broken migration can't look clean.
+  const report = buildIntegrityReport({
+    plan,
+    pagesImported: r.pages,
+    imageManifest: r.imageManifest,
+    source: `Confluence export → ${creds.baseUrl}`,
+    sourceBaseline: { pages: manifest.pages.length },
+    failedPageDetails: [...readFailures, ...r.failedPages],
+  });
+  const text = renderIntegrityReport(report);
+  console.log('\n' + text);
+  const reportPath = join(outDir, 'migration-report.md');
+  await writeFile(reportPath, text);
+  await writeFile(join(outDir, 'migration-report.json'), JSON.stringify(report, null, 2));
+  console.log(`\nIntegrity report → ${reportPath}`);
+  if (report.verdict !== 'COMPLETE') {
+    console.error(`\nMIGRATION INCOMPLETE — some content did not transfer cleanly. See ${reportPath} (page/image gaps listed). Nothing was deleted at the source; fix the gaps and re-run.`);
+    process.exit(2);
+  }
+  console.log(`\nMigration verified COMPLETE. Open ${creds.baseUrl} to see your wiki.`);
 }
 
 main().catch((e) => { console.error(`migrate failed: ${e.message}`); process.exit(1); });

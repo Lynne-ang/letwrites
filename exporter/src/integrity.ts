@@ -94,7 +94,11 @@ export function buildIntegrityReport(input: IntegrityInput): IntegrityReport {
     perPageImageGaps: imageManifest.filter((r) => r.missing.length || r.failed.length),
     pageGaps: input.failedPageDetails ?? [],
     verdict:
+      // Count arithmetic alone is not enough: a recorded page failure (failedPageDetails) must force
+      // INCOMPLETE even if expected==imported by coincidence — otherwise the report can list pageGaps
+      // while declaring COMPLETE (self-contradictory, silent loss).
       failedPages === 0 && missing === 0 && failed === 0 && droppedAtIngest === 0
+        && (input.failedPageDetails?.length ?? 0) === 0
         ? 'COMPLETE'
         : 'INCOMPLETE',
   };

@@ -34,6 +34,18 @@ describe('integrity report', () => {
     expect(r.pages).toEqual({ expected: 3, imported: 3, failed: 0 });
   });
 
+  it('P0-2: a recorded page failure forces INCOMPLETE even when page COUNTS line up', () => {
+    // expected==imported (3==3) so count arithmetic alone would say COMPLETE, but a page is recorded
+    // as failed → the verdict must be INCOMPLETE (no self-contradictory "COMPLETE with pageGaps").
+    const manifest: PageImageRecord[] = [{ page: 'P0', found: 0, uploaded: [], missing: [], failed: [] }];
+    const r = buildIntegrityReport({
+      plan: plan(3), pagesImported: 3, imageManifest: manifest, sourceBaseline: { pages: 3 },
+      failedPageDetails: [{ page: 'Runbook', reason: 'create 422' }],
+    });
+    expect(r.verdict).toBe('INCOMPLETE');
+    expect(r.pageGaps).toContainEqual({ page: 'Runbook', reason: 'create 422' });
+  });
+
   it('is INCOMPLETE and names the gaps when an image is missing', () => {
     const manifest: PageImageRecord[] = [
       { page: 'P0', found: 2, uploaded: ['a.png'], missing: ['b.png'], failed: [] },
