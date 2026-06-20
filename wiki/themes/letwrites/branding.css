@@ -57,6 +57,148 @@ header a.logo::before{content:"";display:inline-block;width:30px;height:30px;mar
 .lw-empty-row{display:flex;gap:10px;flex-wrap:wrap}
 .lw-emptybtn{display:inline-block;padding:9px 16px;border-radius:9px;border:1px solid #d9e4ff;background:#fff;color:#2f6bff;font-weight:600;text-decoration:none}
 .lw-emptybtn.primary{background:#2f6bff;color:#fff;border-color:#2f6bff}
+
+
+/* =====================================================================
+   LETWRITES NOTION RESKIN v2  (appended last so it wins the cascade)
+   Full visual redesign of BookStack into a calm, modern, Notion-style UI.
+   CSS-only, no fork, no template/data changes. Targets BookStack v26.05
+   structural classes + its configurable CSS variables. Light mode primary;
+   a minimal dark-mode block keeps BookStack's dark theme intact.
+   No backslashes anywhere (head content is stored via a SQL literal that
+   only escapes single quotes — a stray backslash would be mangled).
+   ===================================================================== */
+:root{
+  --lw-bg:#ffffff; --lw-sidebar:#fbfbfa;
+  --lw-text:#37352f; --lw-text-muted:#787774; --lw-faint:#9b9a97;
+  --lw-border:rgba(55,53,47,.09); --lw-border-solid:#e6e6e3;
+  --lw-hover:rgba(55,53,47,.05);
+  --lw-accent:#2383e2; --lw-accent-soft:rgba(35,131,226,.14);
+  --lw-primary:#37352f; --lw-primary-hover:#2a2824;
+  --lw-radius:6px; --lw-radius-lg:10px;
+  --color-primary:#2383e2; --color-primary-light:rgba(35,131,226,.12); --color-link:#1a73c7;
+}
+/* ---- Type ---- */
+body,.page-content,input,select,textarea,button,.button,.text-button{
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif !important; -webkit-font-smoothing:antialiased;
+}
+body{ background:var(--lw-bg); color:var(--lw-text); font-size:15px; line-height:1.5; }
+h1,h2,h3,h4,h5,h6{ color:var(--lw-text); }
+/* border-box so width:100% means EXACTLY the container width (fixes input vs button misalignment) */
+input,select,textarea,button,.button,a.button,input[type=submit]{ box-sizing:border-box !important; }
+
+/* ---- Center the app; kill the giant right margin / interior gap ---- */
+#content,.tri-layout-container,.container{ max-width:1180px; margin-left:auto; margin-right:auto; }
+.tri-layout-middle-contents{ max-width:860px; margin-left:auto; margin-right:auto; }
+
+/* ---- Header: slim, white, hairline, dark text ---- */
+header,#header,.primary-background,header.grid{
+  background:#fff !important; color:var(--lw-text) !important; box-shadow:none !important; border-bottom:1px solid var(--lw-border);
+}
+header a,#header a,header .header-links a{ color:var(--lw-text) !important; opacity:1; }
+header a:hover,#header a:hover{ opacity:.6; }
+header .logo-text{ color:var(--lw-text) !important; font-weight:700; letter-spacing:-.01em; }
+header a.logo::before{ background-color:var(--lw-sidebar) !important; border:1px solid var(--lw-border-solid); box-shadow:none; }
+
+/* ---- Header SEARCH: a small rounded pill (NOT a full-width grey blob) ---- */
+header #header-search, header .search-box{ max-width:300px; }
+header #header-search input, header .search-box input, #header-search input[type=text]{
+  width:240px !important; max-width:100%; background:var(--lw-sidebar) !important;
+  border:1px solid var(--lw-border) !important; color:var(--lw-text) !important; border-radius:8px !important;
+  padding:7px 12px !important; min-height:36px !important; font-size:14px !important;
+}
+header #header-search input:focus{ background:#fff !important; border-color:var(--lw-accent) !important; box-shadow:0 0 0 3px var(--lw-accent-soft) !important; }
+
+/* ---- Content ---- */
+.page-content{ color:var(--lw-text); line-height:1.75; max-width:820px; }
+.page-content>*:first-child{ margin-top:0; }
+.page-content h1{ font-size:2.4rem; font-weight:800; letter-spacing:-.025em; line-height:1.15; margin:.1em 0 .5em; }
+.page-content h2{ font-size:1.5rem; font-weight:700; letter-spacing:-.015em; margin:1.8em 0 .4em; }
+.page-content h3{ font-size:1.2rem; font-weight:600; margin:1.4em 0 .3em; }
+.page-content p,.page-content li{ font-size:1.05rem; }
+.page-content a{ color:var(--lw-accent); text-decoration:none; } .page-content a:hover{ text-decoration:underline; }
+.page-content blockquote{ border-left:3px solid var(--lw-border-solid); color:var(--lw-text-muted); padding-left:14px; margin-left:0; }
+.page-content code{ background:var(--lw-sidebar); border:1px solid var(--lw-border); border-radius:4px; padding:.1em .4em; font-size:.9em; }
+
+/* ---- Breadcrumbs ---- */
+.breadcrumbs,.breadcrumbs a{ color:var(--lw-faint) !important; font-size:.8rem; }
+.breadcrumbs a:hover{ color:var(--lw-text) !important; }
+
+/* ---- Left sidebar / book tree ---- */
+.tri-layout-left{ background:var(--lw-sidebar); border-radius:var(--lw-radius-lg); }
+.tri-layout-left-contents{ border:0; }
+.book-tree h5,.tri-layout-left h5,.tri-layout-right h5{ color:var(--lw-faint); font-size:.7rem; letter-spacing:.06em; font-weight:600; }
+.book-tree .entity-list-item,.sidebar .entity-list-item{ border-radius:var(--lw-radius); }
+.book-tree .entity-list-item:hover,.sidebar .entity-list-item:hover{ background:var(--lw-hover); }
+.book-tree .entity-list-item.selected,.entity-list-item[aria-current],.sidebar-page-nav a.current{ background:var(--lw-accent-soft) !important; border-radius:var(--lw-radius); }
+.tri-layout-right,.tri-layout-right-contents{ color:var(--lw-text-muted); }
+
+/* ---- Cards / lists: frameless ---- */
+.card,.content-wrap,.featured-image-container{ background:transparent !important; border:0 !important; box-shadow:none !important; }
+.grid-card{ background:transparent !important; border:0 !important; box-shadow:none !important; border-radius:var(--lw-radius-lg) !important; padding:14px 16px !important; transition:background .15s ease; }
+.grid-card:hover{ background:var(--lw-hover) !important; }
+.entity-list-item{ border-radius:var(--lw-radius); padding:8px; transition:background .15s ease; }
+.entity-list-item:hover{ background:var(--lw-hover); }
+.entity-list-item-name,h4.entity-list-item-name a{ color:var(--lw-text) !important; font-weight:600; }
+.entity-item-snippet,.entity-list-item p{ color:var(--lw-text-muted); }
+
+/* ---- Buttons ---- */
+.button,button.button,a.button,input[type=submit]{
+  border-radius:var(--lw-radius) !important; font-weight:500 !important; box-shadow:none !important;
+  border:1px solid var(--lw-border-solid) !important; background:#fff !important; color:var(--lw-text) !important;
+  min-height:34px; padding:7px 14px !important; transition:background .15s ease,border-color .15s ease;
+}
+.button:hover,button.button:hover,a.button:hover{ background:var(--lw-hover) !important; }
+.button.primary,button.button.primary,input[type=submit]{ background:var(--lw-primary) !important; color:#fff !important; border-color:var(--lw-primary) !important; }
+.button.primary:hover,button.button.primary:hover,input[type=submit]:hover{ background:var(--lw-primary-hover) !important; border-color:var(--lw-primary-hover) !important; }
+.text-button{ color:var(--lw-accent) !important; }
+.button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{ outline:2px solid var(--lw-accent); outline-offset:2px; }
+
+/* ---- Forms: clean WHITE field, hairline border, focus ring (no grey blob) ---- */
+input[type=text],input[type=email],input[type=password],input[type=search],input[type=number],select,textarea,.input-base{
+  border:1px solid var(--lw-border-solid) !important; border-radius:var(--lw-radius) !important; background:#fff !important;
+  color:var(--lw-text) !important; padding:9px 12px !important; min-height:38px; box-shadow:none !important;
+  transition:border-color .12s ease,box-shadow .12s ease;
+}
+input::placeholder,textarea::placeholder{ color:var(--lw-faint) !important; }
+input:focus,select:focus,textarea:focus,.input-base:focus{ border-color:var(--lw-accent) !important; box-shadow:0 0 0 3px var(--lw-accent-soft) !important; outline:none !important; }
+/* full width only inside form groups, so header search keeps its size */
+.form-group input,.form-group select,.form-group textarea,.setting-list input,.setting-content input{ width:100%; }
+label,.form-group label{ color:var(--lw-text-muted); font-weight:500; font-size:.85rem; display:block; margin-bottom:6px; }
+.form-group{ margin-bottom:18px; }
+.text-muted,.faded{ color:var(--lw-text-muted) !important; }
+
+/* ---- Tables: borderless, row hairlines only ---- */
+.page-content table,table.table,.table{ border-collapse:collapse; width:100%; }
+.page-content table th,table.table th,.table th{
+  background:transparent; color:var(--lw-faint); font-weight:600; text-align:left; border:0 !important;
+  border-bottom:1px solid var(--lw-border-solid) !important; padding:8px 16px 8px 0; font-size:.78rem; text-transform:uppercase; letter-spacing:.04em;
+}
+.page-content table td,table.table td,.table td{ border:0 !important; border-bottom:1px solid var(--lw-border) !important; padding:11px 16px 11px 0; }
+table.table tr:hover td{ background:var(--lw-hover); }
+
+/* ---- Admin / settings ---- */
+.setting-nav a,.nav-tabs a{ border-radius:var(--lw-radius); color:var(--lw-text-muted) !important; }
+.setting-nav a:hover,.nav-tabs a:hover{ background:var(--lw-hover); color:var(--lw-text) !important; }
+.setting-nav a.active,.nav-tabs a.selected,.setting-nav a[aria-current]{ background:var(--lw-accent-soft) !important; color:var(--lw-accent) !important; }
+
+/* ---- Login / register card ---- */
+body.login .content-wrap,.simple-card,.login-form,#content>.card{ background:#fff !important; border:1px solid var(--lw-border-solid) !important; border-radius:14px !important; box-shadow:0 4px 24px rgba(15,15,15,.05) !important; }
+
+/* ---- Chrome ---- */
+hr,.hr{ border-color:var(--lw-border) !important; }
+.dropdown-menu,.dropdown-container ul{ border:1px solid var(--lw-border-solid) !important; border-radius:var(--lw-radius-lg) !important; box-shadow:0 8px 28px rgba(15,15,15,.12) !important; }
+.dropdown-menu li a:hover{ background:var(--lw-hover) !important; }
+
+/* ---- Dark mode (keep BookStack dark working; Notion-dark tokens) ---- */
+body.dark-mode{ --lw-bg:#191919; --lw-sidebar:#202020; --lw-text:#e9e9e7; --lw-text-muted:#9b9a97; --lw-faint:#6f6f6c; --lw-border:rgba(255,255,255,.09); --lw-border-solid:#373737; --lw-hover:rgba(255,255,255,.055); --lw-accent-soft:rgba(35,131,226,.22); }
+body.dark-mode header,body.dark-mode #header{ background:#191919 !important; }
+body.dark-mode .tri-layout-left{ background:#202020; }
+body.dark-mode input,body.dark-mode select,body.dark-mode textarea,body.dark-mode .button{ background:#202020 !important; color:var(--lw-text) !important; }
+body.dark-mode .button.primary,body.dark-mode input[type=submit]{ background:#e9e9e7 !important; color:#191919 !important; border-color:#e9e9e7 !important; }
+
+@media (prefers-reduced-motion: reduce){ *{ transition:none !important; } }
+
 </style>
 <script>
 (function(){

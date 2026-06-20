@@ -1,0 +1,46 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Letwrites Notion reskin — before / after</title>
+<style>
+  :root{font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+  *{box-sizing:border-box}
+  body{margin:0;background:#0b0d11;color:#e7ebf0}
+  .bar{display:flex;align-items:center;gap:14px;padding:12px 18px;border-bottom:1px solid #222833}
+  .bar b{font-size:15px;letter-spacing:-.01em}
+  .bar .muted{color:#98a2b1;font-size:13px}
+  .toggle{margin-left:auto;display:flex;gap:6px;background:#13171e;border:1px solid #222833;border-radius:9px;padding:4px}
+  .toggle button{border:0;background:transparent;color:#98a2b1;font:600 13px/1 inherit;padding:7px 14px;border-radius:6px;cursor:pointer}
+  .toggle button.on{background:#2f6bff;color:#fff}
+  .stage{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:#222833;height:calc(100vh - 50px)}
+  .stage.solo{grid-template-columns:1fr}
+  .pane{display:flex;flex-direction:column;background:#fff;min-width:0}
+  .pane.hide{display:none}
+  .pane .cap{font:600 12px/1 Inter,sans-serif;color:#fff;padding:7px 12px;text-align:center}
+  .pane.b .cap{background:#0288d1} .pane.a .cap{background:#37352f}
+  iframe{border:0;width:100%;flex:1;background:#fff}
+</style></head>
+<body>
+  <div class="bar">
+    <b>Letwrites · Notion reskin</b><span class="muted">before / after — same markup, real theme CSS</span>
+    <div class="toggle">
+      <button data-v="split" class="on">Split</button>
+      <button data-v="before">Before</button>
+      <button data-v="after">After</button>
+    </div>
+  </div>
+  <div class="stage" id="stage">
+    <div class="pane b" id="paneB"><div class="cap">BEFORE — stock BookStack</div><iframe src="before.html?v=1781959596238"></iframe></div>
+    <div class="pane a" id="paneA"><div class="cap">AFTER — Notion reskin</div><iframe src="after.html?v=1781959596238"></iframe></div>
+  </div>
+  <script>
+    var stage=document.getElementById('stage'),B=document.getElementById('paneB'),A=document.getElementById('paneA');
+    document.querySelectorAll('.toggle button').forEach(function(btn){
+      btn.addEventListener('click',function(){
+        document.querySelectorAll('.toggle button').forEach(function(b){b.classList.remove('on');});
+        btn.classList.add('on');var v=btn.dataset.v;
+        stage.classList.toggle('solo',v!=='split');
+        B.classList.toggle('hide',v==='after');
+        A.classList.toggle('hide',v==='before');
+      });
+    });
+  </script>
+</body></html>
