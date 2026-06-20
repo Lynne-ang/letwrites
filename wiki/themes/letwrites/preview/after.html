@@ -1,0 +1,281 @@
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Letwrites — Notion reskin (AFTER)</title><style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+body, .page-content, input, select, textarea, button, .button {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+  -webkit-font-smoothing: antialiased;
+}
+/* softer, modern corners — purely cosmetic, cannot affect contrast or layout */
+.card, .content-wrap, .grid-card { border-radius: 12px !important; }
+/* Header brand mark. BookStack wraps app-logo in url() (so a data-URI <img> becomes
+   https://host/data:… and 404s) and a relative /import/logo.png needs Caddy routing. So we set
+   app-logo='none' (no <img>) and paint the Letwrites "L" here as a white tile before the wordmark —
+   matches the website header, self-contained (CSS url() DOES accept data URIs), no served file. The
+   seed also extracts THIS data URI to set app-icon-* (the favicon), so the mark lives in one place. */
+header a.logo::before{content:"";display:inline-block;width:30px;height:30px;margin-right:10px;border-radius:8px;vertical-align:middle;background:#fff url(data:image/png;base64,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) center/20px 20px no-repeat;}
+/* self-service sharing control */
+#lw-share-btn{position:fixed;right:18px;bottom:18px;z-index:9998;background:#2f6bff;color:#fff;border:0;border-radius:24px;padding:10px 16px;font:600 13px/1 inherit;box-shadow:0 4px 14px rgba(0,0,0,.18);cursor:pointer}
+#lw-share-ov{position:fixed;inset:0;z-index:9999;background:rgba(11,18,32,.45);display:none;align-items:center;justify-content:center}
+#lw-share-ov.on{display:flex}
+#lw-share-modal{background:#fff;color:#0b1220;border-radius:14px;max-width:460px;width:92%;padding:22px;font:14px/1.5 inherit}
+#lw-share-modal h3{font-size:17px;margin:0 0 4px} #lw-share-modal .sub{color:#5b6678;font-size:13px;margin-bottom:14px}
+#lw-share-modal label{display:flex;gap:8px;align-items:center;margin:8px 0;font-weight:500}
+#lw-share-modal select{width:100%;padding:9px 11px;border:1px solid #e6e9f0;border-radius:9px;margin-top:6px}
+#lw-share-modal select[multiple]{min-height:110px}
+#lw-share-modal .row{display:flex;gap:10px;justify-content:flex-end;margin-top:16px}
+#lw-share-modal button{border-radius:9px;padding:9px 16px;font-weight:600;border:1px solid #e6e9f0;background:#fff;cursor:pointer}
+#lw-share-modal button.primary{background:#2f6bff;color:#fff;border-color:#2f6bff}
+#lw-share-msg{font-size:13px;margin-top:10px}
+#lw-import-btn{position:fixed;left:18px;bottom:18px;z-index:9998;background:#fff;color:#2f6bff;border:1px solid #d9e4ff;border-radius:24px;padding:10px 16px;font:600 13px/1 inherit;text-decoration:none;box-shadow:0 4px 14px rgba(0,0,0,.12)}
+#lw-teams-btn{position:fixed;left:18px;bottom:62px;z-index:9998;background:#fff;color:#2f6bff;border:1px solid #d9e4ff;border-radius:24px;padding:10px 16px;font:600 13px/1 inherit;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.12)}
+#lw-share-modal .lw-team-row{display:flex;gap:8px;align-items:center;justify-content:space-between;margin:7px 0;padding:7px 10px;border:1px solid #eef1f6;border-radius:9px}
+#lw-share-modal .lw-team-row span{font-weight:600}
+#lw-share-modal .lw-team-row button{padding:5px 10px;font-size:12px}
+#lw-share-modal .lw-team-create{display:flex;gap:8px;margin-top:14px}
+#lw-share-modal .lw-team-create input{flex:1;padding:9px 11px;border:1px solid #e6e9f0;border-radius:9px}
+.lw-empty{background:#eef3ff;border:1px solid #d9e4ff;border-radius:12px;padding:20px 22px;margin:0 0 22px}
+.lw-empty h3{margin:0 0 6px;font-size:18px} .lw-empty p{margin:0 0 14px;color:#5b6678}
+.lw-empty-row{display:flex;gap:10px;flex-wrap:wrap}
+.lw-emptybtn{display:inline-block;padding:9px 16px;border-radius:9px;border:1px solid #d9e4ff;background:#fff;color:#2f6bff;font-weight:600;text-decoration:none}
+.lw-emptybtn.primary{background:#2f6bff;color:#fff;border-color:#2f6bff}
+
+
+/* =====================================================================
+   LETWRITES NOTION RESKIN v2  (appended last so it wins the cascade)
+   Full visual redesign of BookStack into a calm, modern, Notion-style UI.
+   CSS-only, no fork, no template/data changes. Targets BookStack v26.05
+   structural classes + its configurable CSS variables. Light mode primary;
+   a minimal dark-mode block keeps BookStack's dark theme intact.
+   No backslashes anywhere (head content is stored via a SQL literal that
+   only escapes single quotes — a stray backslash would be mangled).
+   ===================================================================== */
+:root{
+  --lw-bg:#ffffff; --lw-sidebar:#fbfbfa;
+  --lw-text:#37352f; --lw-text-muted:#787774; --lw-faint:#9b9a97;
+  --lw-border:rgba(55,53,47,.09); --lw-border-solid:#e6e6e3;
+  --lw-hover:rgba(55,53,47,.05);
+  --lw-accent:#2383e2; --lw-accent-soft:rgba(35,131,226,.14);
+  --lw-primary:#37352f; --lw-primary-hover:#2a2824;
+  --lw-radius:6px; --lw-radius-lg:10px;
+  --color-primary:#2383e2; --color-primary-light:rgba(35,131,226,.12); --color-link:#1a73c7;
+}
+/* ---- Type ---- */
+body,.page-content,input,select,textarea,button,.button,.text-button{
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif !important; -webkit-font-smoothing:antialiased;
+}
+body{ background:var(--lw-bg); color:var(--lw-text); font-size:15px; line-height:1.5; }
+h1,h2,h3,h4,h5,h6{ color:var(--lw-text); }
+/* border-box so width:100% means EXACTLY the container width (fixes input vs button misalignment) */
+input,select,textarea,button,.button,a.button,input[type=submit]{ box-sizing:border-box !important; }
+
+/* NOTE: do NOT override BookStack's layout widths here. BookStack's tri-layout (left rail / content /
+   right rail) is already responsive + centered; adding max-width/margin overrides collapses the side
+   rails to ~90px on real BookStack (text wraps per-word). The reskin is VISUAL ONLY — colors, type,
+   borders, spacing — never layout geometry. Readable content width is constrained on .page-content. */
+
+/* ---- Header: slim, white, hairline, dark text ---- */
+header,#header,.primary-background,header.grid{
+  background:#fff !important; color:var(--lw-text) !important; box-shadow:none !important; border-bottom:1px solid var(--lw-border);
+}
+header a,#header a,header .header-links a{ color:var(--lw-text) !important; opacity:1; }
+header a:hover,#header a:hover{ opacity:.6; }
+header .logo-text{ color:var(--lw-text) !important; font-weight:700; letter-spacing:-.01em; }
+/* Hide the injected "L" tile: a customer-deployed instance sets its OWN app-logo, so the ::before
+   tile (from the base branding above) would render a SECOND, duplicate mark next to it. */
+header a.logo::before{ display:none !important; }
+
+/* ---- Header SEARCH: a small rounded pill (NOT a full-width grey blob) ---- */
+header #header-search, header .search-box{ max-width:300px; }
+header #header-search input, header .search-box input, #header-search input[type=text]{
+  width:240px !important; max-width:100%; background:var(--lw-sidebar) !important;
+  border:1px solid var(--lw-border) !important; color:var(--lw-text) !important; border-radius:8px !important;
+  padding:7px 12px !important; min-height:36px !important; font-size:14px !important;
+}
+header #header-search input:focus{ background:#fff !important; border-color:var(--lw-accent) !important; box-shadow:0 0 0 3px var(--lw-accent-soft) !important; }
+
+/* ---- Content ---- */
+.page-content{ color:var(--lw-text); line-height:1.75; max-width:820px; }
+.page-content>*:first-child{ margin-top:0; }
+.page-content h1{ font-size:2.4rem; font-weight:800; letter-spacing:-.025em; line-height:1.15; margin:.1em 0 .5em; }
+.page-content h2{ font-size:1.5rem; font-weight:700; letter-spacing:-.015em; margin:1.8em 0 .4em; }
+.page-content h3{ font-size:1.2rem; font-weight:600; margin:1.4em 0 .3em; }
+.page-content p,.page-content li{ font-size:1.05rem; }
+.page-content a{ color:var(--lw-accent); text-decoration:none; } .page-content a:hover{ text-decoration:underline; }
+.page-content blockquote{ border-left:3px solid var(--lw-border-solid); color:var(--lw-text-muted); padding-left:14px; margin-left:0; }
+.page-content code{ background:var(--lw-sidebar); border:1px solid var(--lw-border); border-radius:4px; padding:.1em .4em; font-size:.9em; }
+
+/* ---- Breadcrumbs ---- */
+.breadcrumbs,.breadcrumbs a{ color:var(--lw-faint) !important; font-size:.8rem; }
+.breadcrumbs a:hover{ color:var(--lw-text) !important; }
+
+/* ---- Left sidebar / book tree ---- */
+.tri-layout-left{ background:transparent; }
+.tri-layout-left-contents{ border:0; }
+.book-tree h5,.tri-layout-left h5,.tri-layout-right h5{ color:var(--lw-faint); font-size:.7rem; letter-spacing:.06em; font-weight:600; }
+.book-tree .entity-list-item,.sidebar .entity-list-item{ border-radius:var(--lw-radius); }
+.book-tree .entity-list-item:hover,.sidebar .entity-list-item:hover{ background:var(--lw-hover); }
+.book-tree .entity-list-item.selected,.entity-list-item[aria-current],.sidebar-page-nav a.current{ background:var(--lw-accent-soft) !important; border-radius:var(--lw-radius); }
+.tri-layout-right,.tri-layout-right-contents{ color:var(--lw-text-muted); }
+
+/* ---- Cards / lists: frameless ---- */
+.card,.content-wrap,.featured-image-container{ background:transparent !important; border:0 !important; box-shadow:none !important; }
+.grid-card{ background:transparent !important; border:0 !important; box-shadow:none !important; border-radius:var(--lw-radius-lg) !important; padding:14px 16px !important; transition:background .15s ease; }
+.grid-card:hover{ background:var(--lw-hover) !important; }
+.entity-list-item{ border-radius:var(--lw-radius); padding:8px; transition:background .15s ease; }
+.entity-list-item:hover{ background:var(--lw-hover); }
+.entity-list-item-name,h4.entity-list-item-name a{ color:var(--lw-text) !important; font-weight:600; }
+.entity-item-snippet,.entity-list-item p{ color:var(--lw-text-muted); }
+
+/* ---- Buttons ---- */
+.button,button.button,a.button,input[type=submit]{
+  border-radius:var(--lw-radius) !important; font-weight:500 !important; box-shadow:none !important;
+  border:1px solid var(--lw-border-solid) !important; background:#fff !important; color:var(--lw-text) !important;
+  min-height:34px; padding:7px 14px !important; transition:background .15s ease,border-color .15s ease;
+}
+.button:hover,button.button:hover,a.button:hover{ background:var(--lw-hover) !important; }
+.button.primary,button.button.primary,input[type=submit]{ background:var(--lw-primary) !important; color:#fff !important; border-color:var(--lw-primary) !important; }
+.button.primary:hover,button.button.primary:hover,input[type=submit]:hover{ background:var(--lw-primary-hover) !important; border-color:var(--lw-primary-hover) !important; }
+.text-button{ color:var(--lw-accent) !important; }
+.button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{ outline:2px solid var(--lw-accent); outline-offset:2px; }
+
+/* ---- Forms: clean WHITE field, hairline border, focus ring (no grey blob) ---- */
+input[type=text],input[type=email],input[type=password],input[type=search],input[type=number],select,textarea,.input-base{
+  border:1px solid var(--lw-border-solid) !important; border-radius:var(--lw-radius) !important; background:#fff !important;
+  color:var(--lw-text) !important; padding:9px 12px !important; min-height:38px; box-shadow:none !important;
+  transition:border-color .12s ease,box-shadow .12s ease;
+}
+input::placeholder,textarea::placeholder{ color:var(--lw-faint) !important; }
+input:focus,select:focus,textarea:focus,.input-base:focus{ border-color:var(--lw-accent) !important; box-shadow:0 0 0 3px var(--lw-accent-soft) !important; outline:none !important; }
+/* full width only inside form groups, so header search keeps its size */
+.form-group input,.form-group select,.form-group textarea,.setting-list input,.setting-content input{ width:100%; }
+label,.form-group label{ color:var(--lw-text-muted); font-weight:500; font-size:.85rem; display:block; margin-bottom:6px; }
+.form-group{ margin-bottom:18px; }
+.text-muted,.faded{ color:var(--lw-text-muted) !important; }
+
+/* ---- Tables: borderless, row hairlines only ---- */
+.page-content table,table.table,.table{ border-collapse:collapse; width:100%; }
+.page-content table th,table.table th,.table th{
+  background:transparent; color:var(--lw-faint); font-weight:600; text-align:left; border:0 !important;
+  border-bottom:1px solid var(--lw-border-solid) !important; padding:8px 16px 8px 0; font-size:.78rem; text-transform:uppercase; letter-spacing:.04em;
+}
+.page-content table td,table.table td,.table td{ border:0 !important; border-bottom:1px solid var(--lw-border) !important; padding:11px 16px 11px 0; }
+table.table tr:hover td{ background:var(--lw-hover); }
+
+/* ---- Admin / settings ---- */
+.setting-nav a,.nav-tabs a{ border-radius:var(--lw-radius); color:var(--lw-text-muted) !important; }
+.setting-nav a:hover,.nav-tabs a:hover{ background:var(--lw-hover); color:var(--lw-text) !important; }
+.setting-nav a.active,.nav-tabs a.selected,.setting-nav a[aria-current]{ background:var(--lw-accent-soft) !important; color:var(--lw-accent) !important; }
+
+/* ---- Login / register card ---- */
+body.login .content-wrap,.simple-card,.login-form,#content>.card{ background:#fff !important; border:1px solid var(--lw-border-solid) !important; border-radius:14px !important; box-shadow:0 4px 24px rgba(15,15,15,.05) !important; }
+
+/* ---- Chrome ---- */
+hr,.hr{ border-color:var(--lw-border) !important; }
+.dropdown-menu,.dropdown-container ul{ border:1px solid var(--lw-border-solid) !important; border-radius:var(--lw-radius-lg) !important; box-shadow:0 8px 28px rgba(15,15,15,.12) !important; }
+.dropdown-menu li a:hover{ background:var(--lw-hover) !important; }
+
+/* ---- Dark mode (keep BookStack dark working; Notion-dark tokens) ---- */
+body.dark-mode{ --lw-bg:#191919; --lw-sidebar:#202020; --lw-text:#e9e9e7; --lw-text-muted:#9b9a97; --lw-faint:#6f6f6c; --lw-border:rgba(255,255,255,.09); --lw-border-solid:#373737; --lw-hover:rgba(255,255,255,.055); --lw-accent-soft:rgba(35,131,226,.22); }
+body.dark-mode header,body.dark-mode #header{ background:#191919 !important; }
+body.dark-mode .tri-layout-left{ background:#202020; }
+body.dark-mode input,body.dark-mode select,body.dark-mode textarea,body.dark-mode .button{ background:#202020 !important; color:var(--lw-text) !important; }
+body.dark-mode .button.primary,body.dark-mode input[type=submit]{ background:#e9e9e7 !important; color:#191919 !important; border-color:#e9e9e7 !important; }
+
+@media (prefers-reduced-motion: reduce){ *{ transition:none !important; } }
+
+
+.pagewrap{max-width:1100px;margin:0 auto;padding:18px 16px 60px}.demo-label{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--lw-text-muted);margin:34px 0 10px;border-bottom:1px solid var(--lw-border);padding-bottom:6px}.header-inner{display:flex;align-items:center;gap:18px;max-width:1100px;margin:0 auto;padding:0 16px;height:56px}#header-search input{width:240px}.header-links .links{display:flex;gap:16px;margin-left:auto}.tri-layout-container{display:grid;grid-template-columns:240px minmax(0,820px) 200px;gap:40px;align-items:start;justify-content:center}.tri-layout-left{background:var(--lw-sidebar);border-radius:var(--lw-radius-lg)}.tri-layout-left-contents{padding:16px 14px}.tri-layout-middle-contents{padding:4px 0;max-width:none}.tri-layout-right-contents{padding:4px 0}.sidebar-page-list{list-style:none;margin:0;padding:0}.entity-list-item{padding:6px 8px;cursor:pointer}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:4px}.settings-container{display:grid;grid-template-columns:220px 1fr;gap:48px;max-width:980px}.setting-nav{display:flex;flex-direction:column;gap:2px}.setting-nav a{padding:8px 12px;text-decoration:none}.setting-list{max-width:520px}.login-wrap{display:flex;justify-content:center;margin-top:8px}.card.login-form{padding:36px 32px;width:380px;border:1px solid var(--lw-border) !important;border-radius:14px !important;box-shadow:0 4px 24px rgba(15,15,15,.06) !important}.card.login-form h3{font-size:1.4rem;margin:0 0 22px}.actions{margin-top:18px;display:flex;gap:8px}h5{font-size:11px;letter-spacing:.06em;color:var(--lw-text-muted);margin:0 0 10px}</style></head>
+<body>
+<header id="header">
+  <div class="header-inner">
+    <a href="#" class="logo"><span class="logo-text">Letwrites</span></a>
+    <div id="header-search"><input type="text" placeholder="Search the wiki..."></div>
+    <nav class="header-links"><div class="links">
+      <a href="#">Shelves</a><a href="#">Books</a><a href="#">Settings</a><a href="#">Profile</a>
+    </div></nav>
+  </div>
+</header>
+
+<section class="pagewrap">
+  <h2 class="demo-label">Page view — book tree sidebar + content</h2>
+  <div class="tri-layout-container">
+    <aside class="tri-layout-left"><div class="tri-layout-left-contents">
+      <h5>ENGINEERING HANDBOOK</h5>
+      <div class="book-tree"><ul class="sidebar-page-list">
+        <li class="entity-list-item"><span class="entity-list-item-name">Getting started</span></li>
+        <li class="entity-list-item selected"><span class="entity-list-item-name">Deploy runbook</span></li>
+        <li class="entity-list-item"><span class="entity-list-item-name">Incident response</span></li>
+        <li class="entity-list-item"><span class="entity-list-item-name">On-call rotation</span></li>
+      </ul></div>
+    </div></aside>
+    <main class="tri-layout-middle"><div class="tri-layout-middle-contents">
+      <nav class="breadcrumbs"><a href="#">Engineering Handbook</a> / <a href="#">Operations</a> / Deploy runbook</nav>
+      <div class="page-content">
+        <h1>Deploy runbook</h1>
+        <p>This guide covers the standard production deploy. Agents publishing here are permission-checked and audited &mdash; the same rules a person sees.</p>
+        <h2>Prerequisites</h2>
+        <ul><li>Access to the <code>prod</code> environment</li><li>A green CI build on <code>main</code></li></ul>
+        <blockquote>Never deploy on a Friday afternoon unless rolling back a Sev-1.</blockquote>
+        <h2>Environments</h2>
+        <table><thead><tr><th>Environment</th><th>URL</th><th>Owner</th></tr></thead>
+        <tbody>
+          <tr><td>Staging</td><td>stg.internal</td><td>Platform</td></tr>
+          <tr><td>Production</td><td>app.internal</td><td>SRE</td></tr>
+        </tbody></table>
+        <p><a href="#">Related: incident response &rarr;</a></p>
+        <div class="actions">
+          <button class="button primary">Edit page</button>
+          <button class="button">Export</button>
+          <button class="button">Revisions</button>
+        </div>
+      </div>
+    </div></main>
+    <aside class="tri-layout-right"><div class="tri-layout-right-contents">
+      <h5>PAGE INFO</h5>
+      <p class="faded">Updated 2 days ago by Alice</p>
+      <p class="faded">4 revisions</p>
+    </div></aside>
+  </div>
+
+  <h2 class="demo-label">Shelf / books grid</h2>
+  <div class="content-wrap">
+    <div class="grid">
+      <div class="grid-card"><h4 class="entity-list-item-name"><a href="#">Engineering Handbook</a></h4><p class="entity-item-snippet">Runbooks, architecture, on-call.</p></div>
+      <div class="grid-card"><h4 class="entity-list-item-name"><a href="#">People Ops</a></h4><p class="entity-item-snippet">Policies, benefits, onboarding.</p></div>
+      <div class="grid-card"><h4 class="entity-list-item-name"><a href="#">Security</a></h4><p class="entity-item-snippet">Standards, reviews, incident log.</p></div>
+    </div>
+  </div>
+
+  <h2 class="demo-label">Settings (admin)</h2>
+  <div class="content-wrap settings-container">
+    <nav class="setting-nav">
+      <a href="#" class="active">Features &amp; Security</a>
+      <a href="#">Customization</a>
+      <a href="#">Registration</a>
+      <a href="#">Users</a>
+      <a href="#">Roles</a>
+    </nav>
+    <div class="setting-list">
+      <div class="form-group">
+        <label>Application name</label>
+        <input type="text" value="Letwrites">
+      </div>
+      <div class="form-group">
+        <label>Allow public access</label>
+        <select><option>No</option><option>Yes</option></select>
+      </div>
+      <div class="actions"><button class="button primary">Save settings</button></div>
+    </div>
+  </div>
+
+  <h2 class="demo-label">Login</h2>
+  <div class="login-wrap">
+    <div class="card login-form">
+      <h3>Log in</h3>
+      <div class="form-group"><label>Email</label><input type="email" placeholder="you@company.com"></div>
+      <div class="form-group"><label>Password</label><input type="password" placeholder="********"></div>
+      <button class="button primary" style="width:100%">Log in</button>
+    </div>
+  </div>
+</section></body></html>
