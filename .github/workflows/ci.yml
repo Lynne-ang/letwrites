@@ -25,6 +25,17 @@ jobs:
         working-directory: ${{ matrix.pkg }}
         run: npm run build
 
+  skills:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Test the publish skill (governed MCP vs direct REST)
+        working-directory: skills/letwrites-publish/scripts
+        run: node --test
+
   theme:
     runs-on: ubuntu-latest
     steps:
