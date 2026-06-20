@@ -57,6 +57,205 @@ header a.logo::before{content:"";display:inline-block;width:30px;height:30px;mar
 .lw-empty-row{display:flex;gap:10px;flex-wrap:wrap}
 .lw-emptybtn{display:inline-block;padding:9px 16px;border-radius:9px;border:1px solid #d9e4ff;background:#fff;color:#2f6bff;font-weight:600;text-decoration:none}
 .lw-emptybtn.primary{background:#2f6bff;color:#fff;border-color:#2f6bff}
+
+/* =====================================================================
+   LETWRITES NOTION RESKIN  (appended last so it wins the cascade)
+   Clean, modern, Notion-style look for ALL BookStack pages — user + admin.
+   CSS-only, no fork, no template/data changes. Targets BookStack v26.05
+   structural classes + its configurable CSS variables. Light mode primary;
+   a minimal dark-mode block keeps BookStack's dark theme intact.
+   NOTE: no backslashes anywhere (head content is stored via a SQL literal
+   that only escapes single quotes — a stray backslash would be mangled).
+   ===================================================================== */
+
+/* ---- Design tokens (Notion palette: warm near-black on white) ---- */
+:root{
+  --lw-bg:#ffffff;
+  --lw-surface:#ffffff;
+  --lw-sidebar:#f7f7f5;          /* Notion sidebar grey */
+  --lw-text:#37352f;             /* Notion warm near-black (AAA on white) */
+  --lw-text-muted:#787774;       /* secondary text (AA on white) */
+  --lw-border:rgba(55,53,47,.09);/* hairline */
+  --lw-border-solid:#eaeae8;
+  --lw-hover:rgba(55,53,47,.055);/* subtle row/button hover */
+  --lw-accent:#2383e2;           /* Notion blue (links/primary) */
+  --lw-accent-ink:#ffffff;
+  --lw-accent-soft:rgba(35,131,226,.12);
+  --lw-radius:6px;
+  --lw-radius-lg:10px;
+  /* Recolor BookStack's OWN configurable variables so its native components follow. */
+  --color-primary:#2383e2;
+  --color-primary-light:rgba(35,131,226,.12);
+  --color-link:#1a73c7;
+}
+
+/* ---- Typography: Inter, generous line-height, calm sizing ---- */
+body, .page-content, input, select, textarea, button, .button, .text-button{
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif !important;
+  -webkit-font-smoothing:antialiased;
+}
+body{ background:var(--lw-bg); color:var(--lw-text); font-size:15px; line-height:1.5; }
+.page-content{ color:var(--lw-text); line-height:1.7; }
+.page-content h1,.page-content h2,.page-content h3,.page-content h4,.page-content h5{
+  color:var(--lw-text) !important; font-weight:700; letter-spacing:-.01em; line-height:1.3;
+}
+.page-content h1{ font-size:2rem; margin:.4em 0 .3em; }
+.page-content h2{ font-size:1.5rem; margin:1.4em 0 .3em; }
+.page-content h3{ font-size:1.2rem; }
+.page-content p,.page-content li{ font-size:1rem; }
+.page-content a{ color:var(--lw-accent); text-decoration:none; }
+.page-content a:hover{ text-decoration:underline; }
+.page-content blockquote{ border-left:3px solid var(--lw-border-solid); color:var(--lw-text-muted); padding-left:14px; margin-left:0; }
+.page-content code{ background:var(--lw-sidebar); border-radius:4px; padding:.12em .4em; font-size:.92em; }
+h1,h2,h3,h4,h5,h6{ color:var(--lw-text); }
+
+/* ---- Top header: white, hairline border, dark text (was a solid color bar) ---- */
+header, #header, .primary-background, header.grid{
+  background:var(--lw-surface) !important;
+  color:var(--lw-text) !important;
+  box-shadow:none !important;
+  border-bottom:1px solid var(--lw-border);
+}
+header a, header .header-links a, header .links a, #header a, header .dropdown-container a{
+  color:var(--lw-text) !important; opacity:1;
+}
+header a:hover, #header a:hover{ color:var(--lw-text) !important; opacity:.7; }
+header .logo-text{ color:var(--lw-text) !important; font-weight:700; letter-spacing:-.01em; }
+/* The "L" logo tile is white — give it a soft surface + hairline so it reads on the now-white header. */
+header a.logo::before{
+  background-color:var(--lw-sidebar) !important;
+  border:1px solid var(--lw-border-solid);
+  box-shadow:none;
+}
+
+/* ---- Header search: rounded, subtle ---- */
+header #header-search input, header .search-box input, #header-search input[type=text]{
+  background:var(--lw-sidebar) !important;
+  border:1px solid var(--lw-border) !important;
+  color:var(--lw-text) !important;
+  border-radius:var(--lw-radius) !important;
+}
+header #header-search input::placeholder{ color:var(--lw-text-muted) !important; }
+
+/* ---- Left sidebar / book tree: Notion grey, compact, soft hover ---- */
+.tri-layout-left, .tri-layout-left-contents{ background:var(--lw-sidebar); }
+.tri-layout-left-contents{ border-right:1px solid var(--lw-border); }
+.book-tree .entity-list-item, .sidebar .entity-list-item, .sidebar-page-list .sidebar-page-nav li{
+  border-radius:var(--lw-radius);
+}
+.book-tree .entity-list-item:hover, .sidebar .entity-list-item:hover{ background:var(--lw-hover); }
+.book-tree .entity-list-item.selected, .entity-list-item[aria-current], .sidebar-page-nav a.current{
+  background:var(--lw-accent-soft) !important; border-radius:var(--lw-radius);
+}
+.tri-layout-right, .tri-layout-right-contents{ color:var(--lw-text-muted); }
+
+/* ---- Cards / entity lists: flat, hairline, soft hover (no heavy shadow) ---- */
+.card, .content-wrap, .grid-card, .featured-image-container{
+  border-radius:var(--lw-radius-lg) !important;
+  box-shadow:none !important;
+}
+.card, .grid-card{ border:1px solid var(--lw-border) !important; }
+.grid-card:hover{ background:var(--lw-hover); transition:background .15s ease; }
+.entity-list-item{ border-radius:var(--lw-radius); transition:background .15s ease; }
+.entity-list-item:hover{ background:var(--lw-hover); }
+.entity-list-item .entity-list-item-name, h4.entity-list-item-name a{ color:var(--lw-text); font-weight:600; }
+.entity-list-item p, .entity-item-snippet{ color:var(--lw-text-muted); }
+
+/* ---- Buttons: Notion style. Default = white + hairline; primary = accent ---- */
+.button, button.button, input[type=submit], a.button{
+  border-radius:var(--lw-radius) !important;
+  font-weight:500 !important;
+  box-shadow:none !important;
+  border:1px solid var(--lw-border-solid) !important;
+  background:var(--lw-surface) !important;
+  color:var(--lw-text) !important;
+  min-height:34px; padding:7px 14px !important;
+  transition:background .15s ease, border-color .15s ease;
+}
+.button:hover, button.button:hover, a.button:hover{ background:var(--lw-hover) !important; }
+.button.primary, button.button.primary, .button.outline.primary, input[type=submit]{
+  background:var(--lw-accent) !important; color:var(--lw-accent-ink) !important; border-color:var(--lw-accent) !important;
+}
+.button.primary:hover, button.button.primary:hover, input[type=submit]:hover{ filter:brightness(.94); background:var(--lw-accent) !important; }
+.text-button{ color:var(--lw-accent) !important; }
+/* Visible focus ring for keyboard users (accessibility) */
+.button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible{
+  outline:2px solid var(--lw-accent); outline-offset:2px;
+}
+
+/* ---- Forms / inputs: hairline, soft radius, comfortable, accent focus ---- */
+input[type=text], input[type=email], input[type=password], input[type=search], input[type=number],
+select, textarea, .input-base, .form-group input, .form-group select, .form-group textarea{
+  border:1px solid var(--lw-border-solid) !important;
+  border-radius:var(--lw-radius) !important;
+  background:var(--lw-surface) !important;
+  color:var(--lw-text) !important;
+  padding:9px 11px !important;
+  min-height:40px;
+  box-shadow:none !important;
+}
+input:focus, select:focus, textarea:focus, .input-base:focus{
+  border-color:var(--lw-accent) !important;
+  box-shadow:0 0 0 3px var(--lw-accent-soft) !important;
+  outline:none !important;
+}
+label, .form-group label{ color:var(--lw-text); font-weight:500; }
+.form-group .text-muted, .text-muted, .faded{ color:var(--lw-text-muted) !important; }
+
+/* ---- Tables: minimal, row hairlines, quiet header ---- */
+.page-content table, table.table, .table{ border-collapse:collapse; width:100%; }
+.page-content table th, table.table th, .table th{
+  background:var(--lw-sidebar); color:var(--lw-text); font-weight:600; text-align:left;
+  border:1px solid var(--lw-border) !important; padding:8px 12px;
+}
+.page-content table td, table.table td, .table td{
+  border:1px solid var(--lw-border) !important; padding:8px 12px; color:var(--lw-text);
+}
+table.table tr:hover td{ background:var(--lw-hover); }
+
+/* ---- Breadcrumbs: muted, small ---- */
+.breadcrumbs, .breadcrumbs a, .breadcrumb{ color:var(--lw-text-muted) !important; font-size:.85rem; }
+.breadcrumbs a:hover{ color:var(--lw-text) !important; }
+
+/* ---- Admin / settings: same tokens; quiet nav with active highlight ---- */
+.setting-nav, .settings-container, .tab-container{ color:var(--lw-text); }
+.setting-nav a, .nav-tabs a{ border-radius:var(--lw-radius); color:var(--lw-text-muted) !important; }
+.setting-nav a:hover, .nav-tabs a:hover{ background:var(--lw-hover); color:var(--lw-text) !important; }
+.setting-nav a.active, .nav-tabs a.selected, .setting-nav a[aria-current]{
+  background:var(--lw-accent-soft) !important; color:var(--lw-accent) !important;
+}
+.setting-list .card, .item-list-row{ border:1px solid var(--lw-border) !important; border-radius:var(--lw-radius) !important; }
+
+/* ---- Login / register: clean centered card ---- */
+body.login .content-wrap, .simple-card, .login-form, #content .card{
+  border:1px solid var(--lw-border) !important; border-radius:var(--lw-radius-lg) !important; box-shadow:0 1px 3px rgba(15,15,15,.04) !important;
+}
+
+/* ---- Misc chrome: dividers, dropdowns, tags ---- */
+hr, .hr{ border-color:var(--lw-border) !important; }
+.dropdown-menu, .dropdown-container ul{ border:1px solid var(--lw-border) !important; border-radius:var(--lw-radius-lg) !important; box-shadow:0 6px 24px rgba(15,15,15,.10) !important; }
+.dropdown-menu li a:hover{ background:var(--lw-hover) !important; }
+.tag-item, .label{ border-radius:var(--lw-radius) !important; }
+
+/* ---- Dark mode: keep BookStack's dark theme working; apply Notion-dark tokens only ---- */
+body.dark-mode{
+  --lw-bg:#191919; --lw-surface:#202020; --lw-sidebar:#202020;
+  --lw-text:#e9e9e7; --lw-text-muted:#9b9a97;
+  --lw-border:rgba(255,255,255,.094); --lw-border-solid:#373737;
+  --lw-hover:rgba(255,255,255,.055); --lw-accent-soft:rgba(35,131,226,.22);
+}
+/* In dark mode, do NOT force white surfaces — let the tokens above drive it. */
+body.dark-mode header, body.dark-mode #header{ background:#202020 !important; color:var(--lw-text) !important; }
+body.dark-mode .tri-layout-left, body.dark-mode .tri-layout-left-contents{ background:#202020; }
+body.dark-mode .card, body.dark-mode .grid-card{ background:#202020 !important; }
+body.dark-mode .button, body.dark-mode input, body.dark-mode select, body.dark-mode textarea{
+  background:#262626 !important; color:var(--lw-text) !important;
+}
+
+/* ---- Respect reduced-motion ---- */
+@media (prefers-reduced-motion: reduce){
+  *{ transition:none !important; }
+}
 </style>
 <script>
 (function(){

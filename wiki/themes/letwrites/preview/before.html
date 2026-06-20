@@ -1,0 +1,144 @@
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Letwrites — stock BookStack (BEFORE)</title><style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+*{box-sizing:border-box}
+body{margin:0;font-family:'Lato','Helvetica Neue',Arial,sans-serif;color:#444;background:#f2f2f2;font-size:14px;line-height:1.6}
+#header{background:#0288d1;color:#fff}
+.header-inner{display:flex;align-items:center;gap:18px;max-width:1100px;margin:0 auto;padding:0 16px;height:56px}
+.logo-text{color:#fff;font-weight:700;font-size:18px}
+#header-search input{border:0;border-radius:3px;padding:6px 10px;width:220px}
+.header-links .links{display:flex;gap:16px;margin-left:auto}
+#header a{color:#fff;text-decoration:none;font-size:14px}
+.pagewrap{max-width:1100px;margin:0 auto;padding:18px 16px 60px}
+.demo-label{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:#999;margin:34px 0 10px;border-bottom:1px solid #ddd;padding-bottom:6px}
+.tri-layout-container{display:grid;grid-template-columns:240px 1fr 220px;gap:18px;background:#fff;border:1px solid #ddd;border-radius:3px}
+.tri-layout-left{background:#f8f8f8;border-right:1px solid #ddd}
+.tri-layout-left-contents,.tri-layout-middle-contents,.tri-layout-right-contents{padding:16px}
+h5{font-size:11px;letter-spacing:.06em;color:#888;margin:0 0 10px}
+.sidebar-page-list{list-style:none;margin:0;padding:0}
+.entity-list-item{padding:6px 8px;font-size:14px;color:#206ea7;cursor:pointer}
+.entity-list-item.selected{background:#e3f2fb;font-weight:700}
+.breadcrumbs{font-size:12px;color:#888;margin-bottom:14px}
+.breadcrumbs a{color:#206ea7;text-decoration:none}
+.page-content h1{font-size:26px;color:#222;font-weight:400;margin:.2em 0 .4em}
+.page-content h2{font-size:19px;color:#222;font-weight:400;border-bottom:1px solid #eee;padding-bottom:4px}
+.page-content a{color:#206ea7}
+.page-content code{background:#f2f2f2;border:1px solid #ddd;padding:1px 4px;border-radius:2px}
+.page-content blockquote{border-left:4px solid #ddd;color:#777;margin-left:0;padding-left:12px}
+table{border-collapse:collapse;width:100%;margin:12px 0}
+th,td{border:1px solid #ccc;padding:8px 10px;text-align:left}
+th{background:#eee}
+.actions{margin-top:18px;display:flex;gap:8px}
+.button{background:#0288d1;color:#fff;border:1px solid #0277bd;border-radius:3px;padding:8px 14px;font-size:13px;cursor:pointer;text-transform:uppercase;letter-spacing:.03em}
+.button.primary{background:#0288d1}
+.button:not(.primary){background:#fff;color:#444;border:1px solid #ccc}
+.content-wrap{background:#fff;border:1px solid #ddd;border-radius:3px;padding:16px;margin-top:4px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.grid-card{border:1px solid #ddd;border-radius:3px;padding:14px;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.grid-card h4{margin:0 0 6px} .grid-card a{color:#206ea7;text-decoration:none}
+.entity-item-snippet{color:#888;font-size:13px}
+.settings-container{display:grid;grid-template-columns:220px 1fr;gap:18px}
+.setting-nav{display:flex;flex-direction:column;gap:2px}
+.setting-nav a{padding:8px 10px;color:#206ea7;text-decoration:none;font-size:14px}
+.setting-nav a.active{background:#e3f2fb;font-weight:700}
+.form-group{margin-bottom:14px}
+label{display:block;font-size:13px;color:#555;margin-bottom:4px}
+input,select{width:100%;border:1px solid #ccc;border-radius:3px;padding:7px 9px;font-size:14px}
+.login-wrap{display:flex;justify-content:center;margin-top:8px}
+.card.login-form{background:#fff;border:1px solid #ddd;border-radius:3px;padding:24px;width:340px;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.faded{color:#999;font-size:13px}
+</style></head>
+<body><div style="background:#0288d1;color:#fff;font:600 13px/1 Inter,sans-serif;padding:8px 14px;text-align:center">BEFORE — stock BookStack chrome (approximation)</div>
+<header id="header">
+  <div class="header-inner">
+    <a href="#" class="logo"><span class="logo-text">Letwrites</span></a>
+    <div id="header-search"><input type="text" placeholder="Search the wiki..."></div>
+    <nav class="header-links"><div class="links">
+      <a href="#">Shelves</a><a href="#">Books</a><a href="#">Settings</a><a href="#">Profile</a>
+    </div></nav>
+  </div>
+</header>
+
+<section class="pagewrap">
+  <h2 class="demo-label">Page view — book tree sidebar + content</h2>
+  <div class="tri-layout-container">
+    <aside class="tri-layout-left"><div class="tri-layout-left-contents">
+      <h5>ENGINEERING HANDBOOK</h5>
+      <div class="book-tree"><ul class="sidebar-page-list">
+        <li class="entity-list-item"><span class="entity-list-item-name">Getting started</span></li>
+        <li class="entity-list-item selected"><span class="entity-list-item-name">Deploy runbook</span></li>
+        <li class="entity-list-item"><span class="entity-list-item-name">Incident response</span></li>
+        <li class="entity-list-item"><span class="entity-list-item-name">On-call rotation</span></li>
+      </ul></div>
+    </div></aside>
+    <main class="tri-layout-middle"><div class="tri-layout-middle-contents">
+      <nav class="breadcrumbs"><a href="#">Engineering Handbook</a> / <a href="#">Operations</a> / Deploy runbook</nav>
+      <div class="page-content">
+        <h1>Deploy runbook</h1>
+        <p>This guide covers the standard production deploy. Agents publishing here are permission-checked and audited &mdash; the same rules a person sees.</p>
+        <h2>Prerequisites</h2>
+        <ul><li>Access to the <code>prod</code> environment</li><li>A green CI build on <code>main</code></li></ul>
+        <blockquote>Never deploy on a Friday afternoon unless rolling back a Sev-1.</blockquote>
+        <h2>Environments</h2>
+        <table><thead><tr><th>Environment</th><th>URL</th><th>Owner</th></tr></thead>
+        <tbody>
+          <tr><td>Staging</td><td>stg.internal</td><td>Platform</td></tr>
+          <tr><td>Production</td><td>app.internal</td><td>SRE</td></tr>
+        </tbody></table>
+        <p><a href="#">Related: incident response &rarr;</a></p>
+        <div class="actions">
+          <button class="button primary">Edit page</button>
+          <button class="button">Export</button>
+          <button class="button">Revisions</button>
+        </div>
+      </div>
+    </div></main>
+    <aside class="tri-layout-right"><div class="tri-layout-right-contents">
+      <h5>PAGE INFO</h5>
+      <p class="faded">Updated 2 days ago by Alice</p>
+      <p class="faded">4 revisions</p>
+    </div></aside>
+  </div>
+
+  <h2 class="demo-label">Shelf / books grid</h2>
+  <div class="content-wrap">
+    <div class="grid">
+      <div class="grid-card"><h4 class="entity-list-item-name"><a href="#">Engineering Handbook</a></h4><p class="entity-item-snippet">Runbooks, architecture, on-call.</p></div>
+      <div class="grid-card"><h4 class="entity-list-item-name"><a href="#">People Ops</a></h4><p class="entity-item-snippet">Policies, benefits, onboarding.</p></div>
+      <div class="grid-card"><h4 class="entity-list-item-name"><a href="#">Security</a></h4><p class="entity-item-snippet">Standards, reviews, incident log.</p></div>
+    </div>
+  </div>
+
+  <h2 class="demo-label">Settings (admin)</h2>
+  <div class="content-wrap settings-container">
+    <nav class="setting-nav">
+      <a href="#" class="active">Features &amp; Security</a>
+      <a href="#">Customization</a>
+      <a href="#">Registration</a>
+      <a href="#">Users</a>
+      <a href="#">Roles</a>
+    </nav>
+    <div class="setting-list">
+      <div class="form-group">
+        <label>Application name</label>
+        <input type="text" value="Letwrites">
+      </div>
+      <div class="form-group">
+        <label>Allow public access</label>
+        <select><option>No</option><option>Yes</option></select>
+      </div>
+      <div class="actions"><button class="button primary">Save settings</button></div>
+    </div>
+  </div>
+
+  <h2 class="demo-label">Login</h2>
+  <div class="login-wrap">
+    <div class="card login-form">
+      <h3>Log in</h3>
+      <div class="form-group"><label>Email</label><input type="email" placeholder="you@company.com"></div>
+      <div class="form-group"><label>Password</label><input type="password" placeholder="********"></div>
+      <button class="button primary" style="width:100%">Log in</button>
+    </div>
+  </div>
+</section></body></html>
