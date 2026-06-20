@@ -29,6 +29,12 @@ services:
   letwrites_gateway:
     image: *ent_image
     command: ["node", "dist/gateway/server.js"]
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:8788/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
     container_name: letwrites_gateway
     restart: unless-stopped
     depends_on: [letwrites_engine]
@@ -51,6 +57,12 @@ services:
   letwrites_share:
     image: *ent_image
     command: ["node", "dist/share/server.js"]
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:8089/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
     container_name: letwrites_share
     restart: unless-stopped
     environment:
@@ -71,6 +83,12 @@ services:
   letwrites_audit_export:
     image: *ent_image
     command: ["node", "dist/audit/server.js"]
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:8789/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
     container_name: letwrites_audit_export
     restart: unless-stopped
     environment:
@@ -88,6 +106,12 @@ services:
   letwrites_governance:
     image: *ent_image
     command: ["node", "dist/dashboard/server.js"]
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:8790/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
     container_name: letwrites_governance
     restart: unless-stopped
     environment:
@@ -100,6 +124,7 @@ services:
       - LETWRITES_ANCHOR_FILE=/anchor/.anchor.json
       - GATEWAY_URL=http://letwrites_gateway:8788
       - LETWRITES_DASHBOARD_TOKEN=${LETWRITES_DASHBOARD_TOKEN:-}
+      - LETWRITES_DASHBOARD_TRUST_PROXY=${LETWRITES_DASHBOARD_TRUST_PROXY:-}   # set a TOKEN above OR =1 to confirm your SSO/ingress gates this
     volumes: [./data/engine-audit:/audit:ro, audit_anchor:/anchor:ro, lic_cache:/lic]
 
 volumes:
