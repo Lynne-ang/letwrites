@@ -7,7 +7,10 @@
  *   node publish.mjs --title "..." --file doc.md [--book B] [--chapter C] [--base-url URL] [--dry-run]
  *
  * Credentials (env): LETWRITES_TOKEN_ID + LETWRITES_TOKEN_SECRET   (direct / self-host)
- * Governed mode (env): LETWRITES_GATEWAY_URL  -> writes run as the verified SSO user, audited.
+ * Governed mode (env): LETWRITES_GATEWAY_URL  -> writes run as the verified SSO user, audited
+ *   (one JSON-RPC publish_document call to the gateway). Optional LETWRITES_GATEWAY_TOKEN -> sent as
+ *   `Authorization: Bearer` for OIDC gateways; with a trusted-header SSO proxy, the proxy injects identity.
+ *   The target book must already exist in governed mode (the gateway does not create books).
  */
 import { readFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -66,7 +69,31 @@ async function findOrCreate(kind, name, parent) {
   return api('POST', `/api/${kind}`, { name, ...(parent || {}) });
 }
 
+// Governed mode: the gateway speaks JSON-RPC MCP, NOT BookStack REST. Send one publish_document
+// tool call; the gateway runs it AS THE VERIFIED SSO USER, permission-checks it, and audits it.
+// The target book must already exist (the gateway tool does not create books). Identity comes from
+// your deployment's auth: an OIDC bearer (LETWRITES_GATEWAY_TOKEN) or a header set by your SSO proxy.
+async function publishViaGateway() {
+  if (dryRun) {
+    console.log(JSON.stringify({ dryRun: true, mode: 'governed', action: 'create-or-update', title, book, chapter: chapter ?? null, gatewayUrl: root }, null, 2));
+    return;
+  }
+  const rpc = { jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: 'publish_document', arguments: { title, markdown, book, ...(chapter ? { chapter } : {}) } } };
+  const headers = { 'Content-Type': 'application/json', Accept: 'application/json', 'X-Letwrites-Skill': 'letwrites-publish' };
+  if (process.env.LETWRITES_GATEWAY_TOKEN) headers.Authorization = `Bearer ${process.env.LETWRITES_GATEWAY_TOKEN}`;
+  const res = await fetch(`${root}/`, { method: 'POST', headers, body: JSON.stringify(rpc) });
+  const text = await res.text();
+  let j = null; try { j = text ? JSON.parse(text) : null; } catch { /* non-JSON error body */ }
+  if (!res.ok) die(`gateway ${res.status}: ${text.slice(0, 300)}`);
+  if (j?.error) die(`gateway error ${j.error.code}: ${j.error.message}`);
+  const out = j?.result?.content?.[0]?.text ?? '';
+  if (j?.result?.isError) die(`publish refused: ${out}`);
+  console.log(JSON.stringify({ mode: 'governed', result: out }, null, 2));
+}
+
 (async () => {
+  if (gatewayUrl) return publishViaGateway(); // governed mode → MCP, not REST
+
   const bk = await findOrCreate('books', book);
   const ch = chapter ? await findOrCreate('chapters', chapter, { book_id: bk.id }) : null;
 
