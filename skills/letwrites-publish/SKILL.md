@@ -50,7 +50,10 @@ The skill needs two things: where your Letwrites lives, and a credential to writ
    - Governed / Enterprise: point `LETWRITES_GATEWAY_URL` at your Letwrites gateway instead.
      The write then runs as the verified SSO user, is permission-checked (can this person write
      here?), and is recorded in the tamper-evident audit + shows up on the governance dashboard
-     under "who wrote what". Same command, stronger guarantees.
+     under "who wrote what". Same command, stronger guarantees. Identity comes from your gateway's
+     auth: for an OIDC gateway set `LETWRITES_GATEWAY_TOKEN` (sent as a Bearer); behind a trusted-header
+     SSO proxy the proxy supplies it. Note: in governed mode the target **book must already exist**
+     (the gateway does not create books); pre-create it once in Letwrites.
 
 ## How to publish
 

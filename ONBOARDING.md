@@ -37,7 +37,7 @@ exactly what runs:
 
 ```bash
 git clone https://github.com/Lynne-ang/letwrites && cd letwrites
-git checkout v0.1.0          # the latest stable tag — IT chooses when to upgrade
+# For production, pin to a published release tag (see the repo Releases page); `main` tracks the latest stable build.
 ```
 
 IT then runs it on whatever they already operate — **the same images, three shapes:**

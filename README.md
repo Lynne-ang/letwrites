@@ -91,9 +91,9 @@ managed agent gateway, and managed hosting — are a separate proprietary tier, 
 single license key** (the service refuses to boot without it) — see [LICENSING.md](./LICENSING.md). Contributing:
 [CONTRIBUTING.md](./CONTRIBUTING.md). Security: [SECURITY.md](./SECURITY.md).
 
-## Not yet built
+## Not in this open-core repo
 
-The agent-facing MCP/OAuth identity gateway, extra connectors beyond BookStack, and
+The agent-facing MCP/OAuth identity **gateway** is built — it ships as the proprietary PAID layer in a separate repo and boots only with a license, so it is intentionally not part of this open-core repo. Genuinely not built yet: extra connectors beyond BookStack + on-prem filesystem, and
 comments/version-history mapping in the importer. The Confluence exit — text, code, tables,
 hierarchy, **images (at their original display size), inter-page + related-article links, file
 attachments, and emoji** — plus SSO, the in-wiki self-service import, and forced fail-closed
