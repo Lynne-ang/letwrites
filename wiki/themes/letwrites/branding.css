@@ -87,9 +87,10 @@ h1,h2,h3,h4,h5,h6{ color:var(--lw-text); }
 /* border-box so width:100% means EXACTLY the container width (fixes input vs button misalignment) */
 input,select,textarea,button,.button,a.button,input[type=submit]{ box-sizing:border-box !important; }
 
-/* ---- Center the app; kill the giant right margin / interior gap ---- */
-#content,.tri-layout-container,.container{ max-width:1180px; margin-left:auto; margin-right:auto; }
-.tri-layout-middle-contents{ max-width:860px; margin-left:auto; margin-right:auto; }
+/* NOTE: do NOT override BookStack's layout widths here. BookStack's tri-layout (left rail / content /
+   right rail) is already responsive + centered; adding max-width/margin overrides collapses the side
+   rails to ~90px on real BookStack (text wraps per-word). The reskin is VISUAL ONLY — colors, type,
+   borders, spacing — never layout geometry. Readable content width is constrained on .page-content. */
 
 /* ---- Header: slim, white, hairline, dark text ---- */
 header,#header,.primary-background,header.grid{
@@ -98,7 +99,9 @@ header,#header,.primary-background,header.grid{
 header a,#header a,header .header-links a{ color:var(--lw-text) !important; opacity:1; }
 header a:hover,#header a:hover{ opacity:.6; }
 header .logo-text{ color:var(--lw-text) !important; font-weight:700; letter-spacing:-.01em; }
-header a.logo::before{ background-color:var(--lw-sidebar) !important; border:1px solid var(--lw-border-solid); box-shadow:none; }
+/* Hide the injected "L" tile: a customer-deployed instance sets its OWN app-logo, so the ::before
+   tile (from the base branding above) would render a SECOND, duplicate mark next to it. */
+header a.logo::before{ display:none !important; }
 
 /* ---- Header SEARCH: a small rounded pill (NOT a full-width grey blob) ---- */
 header #header-search, header .search-box{ max-width:300px; }
@@ -125,7 +128,7 @@ header #header-search input:focus{ background:#fff !important; border-color:var(
 .breadcrumbs a:hover{ color:var(--lw-text) !important; }
 
 /* ---- Left sidebar / book tree ---- */
-.tri-layout-left{ background:var(--lw-sidebar); border-radius:var(--lw-radius-lg); }
+.tri-layout-left{ background:transparent; }
 .tri-layout-left-contents{ border:0; }
 .book-tree h5,.tri-layout-left h5,.tri-layout-right h5{ color:var(--lw-faint); font-size:.7rem; letter-spacing:.06em; font-weight:600; }
 .book-tree .entity-list-item,.sidebar .entity-list-item{ border-radius:var(--lw-radius); }

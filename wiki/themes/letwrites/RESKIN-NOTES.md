@@ -2,6 +2,31 @@
 
 A clean, modern, Notion-style visual reskin of the BookStack UI for Letwrites. Branch: `notion-reskin`.
 
+## ⚠️ Validated on REAL BookStack (not just the reconstructed preview)
+
+A client hit three bugs the static preview could not show, because the preview reconstructs BookStack's
+markup rather than running it. ALL now reproduced + fixed + re-validated against a real BookStack
+(linuxserver/bookstack + MariaDB 11.4, theme applied via `app-custom-head`). Evidence in
+`preview/live-validation/` (stock vs BROKEN vs FIXED).
+
+Root causes (the reskin is VISUAL ONLY — these were layout/branding overreaches):
+1. **Side rails collapsed to ~90px** (text wrapped one word per line on the books list + page nav).
+   Cause: the reskin added `max-width`/`margin:auto` overrides on `#content`/`.tri-layout-container`/
+   `.tri-layout-middle-contents` to "fix" a dead right margin that ONLY existed in the reconstructed
+   preview. On real BookStack those fight its native responsive tri-layout grid and squeeze the rails.
+   Fix: removed all layout-width overrides. BookStack's layout is already centered/responsive; the
+   reskin must never set layout geometry (readable measure stays on `.page-content` only).
+2. **Two-tone white/grey split** — the grey was BookStack's default page background showing through
+   where the collapsed layout left content uncovered. Resolved once the layout (and body=white) was fixed.
+3. **Doubled logo** — a customer-deployed instance sets its OWN `app-logo`, and the reskin's injected
+   `header a.logo::before` "L" tile rendered a SECOND mark beside it. Fix: `::before{display:none}`.
+
+LESSON (now load-bearing): validate theme changes on a REAL BookStack, not the preview. To stand one up
+locally on Apple Silicon: MariaDB 11.4 container (arm64-native, no emulation) + linuxserver/bookstack
+container on a shared docker network; the image reads DB creds from `/config/www/.env` (NOT `DB_*` env
+vars — only DB_HOST/DB_PORT are used for the connect-wait); apply the reskin by writing branding.css into
+the `app-custom-head` setting; screenshot with headless Chrome.
+
 ## What this is (and is NOT)
 
 - **IS:** a global CSS reskin layered into the existing theme's custom-head fragment
