@@ -183,7 +183,8 @@ writeFileSync(join(HERE, 'after.html'), page('Letwrites — Notion reskin (AFTER
 
 writeFileSync(join(HERE, 'before.html'), page('Letwrites — stock BookStack (BEFORE)', BEFORE_CSS, MARKUP));
 
-const index = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+const BUST = String(Date.now());
+const index = (`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Letwrites Notion reskin — before / after</title>
 <style>
   :root{font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
@@ -213,8 +214,8 @@ const index = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta 
     </div>
   </div>
   <div class="stage" id="stage">
-    <div class="pane b" id="paneB"><div class="cap">BEFORE — stock BookStack</div><iframe src="before.html"></iframe></div>
-    <div class="pane a" id="paneA"><div class="cap">AFTER — Notion reskin</div><iframe src="after.html"></iframe></div>
+    <div class="pane b" id="paneB"><div class="cap">BEFORE — stock BookStack</div><iframe src="before.html?v=BUST"></iframe></div>
+    <div class="pane a" id="paneA"><div class="cap">AFTER — Notion reskin</div><iframe src="after.html?v=BUST"></iframe></div>
   </div>
   <script>
     var stage=document.getElementById('stage'),B=document.getElementById('paneB'),A=document.getElementById('paneA');
@@ -229,6 +230,6 @@ const index = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta 
     });
   </script>
 </body></html>`;
-writeFileSync(join(HERE, 'index.html'), index);
+writeFileSync(join(HERE, 'index.html'), index.replace(/BUST/g, BUST)));
 
 console.log('preview written: before.html, after.html, index.html (open index.html)');
