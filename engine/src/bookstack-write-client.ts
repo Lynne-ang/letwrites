@@ -34,7 +34,19 @@ export class BookStackWriteClient {
     return res.json();
   }
   private async list(path: string): Promise<any[]> {
-    return (await this.req('GET', `${path}${path.includes('?') ? '&' : '?'}count=500`)).data ?? [];
+    // Paginate fully. A hardcoded count=500 silently mis-resolves anything beyond the first 500
+    // entities into the create branch → duplicate books/chapters/pages on a large instance.
+    const sep = path.includes('?') ? '&' : '?';
+    const out: any[] = [];
+    const pageSize = 500;
+    for (let offset = 0; ; offset += pageSize) {
+      const r = await this.req('GET', `${path}${sep}count=${pageSize}&offset=${offset}`);
+      const data: any[] = r.data ?? [];
+      out.push(...data);
+      const total = typeof r.total === 'number' ? r.total : undefined;
+      if (data.length < pageSize || (total != null && out.length >= total)) break;
+    }
+    return out;
   }
   private match<T extends { name?: string }>(items: T[], name: string): T | undefined {
     return items.find((x) => (x.name || '').trim().toLowerCase() === name.trim().toLowerCase());

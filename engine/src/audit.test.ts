@@ -24,6 +24,20 @@ describe('HashChainedFileSink', () => {
     expect(status).toEqual({ valid: true, records: 2 });
   });
 
+  it('P1: resumes after a TORN final line (crash mid-write) without restarting the chain at seq 1', async () => {
+    const f = fresh();
+    await new HashChainedFileSink(f).append([entry('7', 'page:1', 'allowed'), entry('7', 'page:2', 'denied')]);
+    // simulate a crash mid-append: a partial, unparseable trailing line
+    await writeFile(f, (await readFile(f, 'utf8')) + '{"seq":3,"prevHash":"abc","ts":"2026');
+    // new sink resumes — must drop the torn tail, continue from seq 2 (NOT reset to genesis/seq 1)
+    const sink = new HashChainedFileSink(f);
+    await sink.append([entry('7', 'page:4', 'allowed')]);
+    const recs = (await readFile(f, 'utf8')).trim().split('\n').map((l) => JSON.parse(l) as AuditRecord);
+    expect(recs.map((r) => r.seq)).toEqual([1, 2, 3]);   // torn line dropped; new record is seq 3, not seq 1
+    expect(recs[2].prevHash).toBe(recs[1].hash);          // chain continues unbroken
+    expect((await verifyChain(f)).valid).toBe(true);      // file stays fully parseable + valid
+  });
+
   it('links seq and prevHash across appends', async () => {
     const f = fresh();
     const sink = new HashChainedFileSink(f);

@@ -112,6 +112,18 @@ function secretOk(provided: string): boolean {
   return timingSafeEqual(a, b);
 }
 
+// Per-target write lock: serialize concurrent publishes to the SAME {book, chapter, title} so a
+// find-page → not-found → create race can't create duplicate pages. Different targets stay parallel.
+const writeLocks = new Map<string, Promise<unknown>>();
+function withWriteLock<T>(key: string, fn: () => Promise<T>): Promise<T> {
+  const prev = writeLocks.get(key) ?? Promise.resolve();
+  const run = prev.then(fn, fn);
+  writeLocks.set(key, run.then(() => undefined, () => undefined));
+  // best-effort cleanup so the map can't grow unbounded
+  run.finally(() => { if (writeLocks.get(key) === undefined) writeLocks.delete(key); }).catch(() => {});
+  return run;
+}
+
 const server = createServer(async (req, res) => {
   try {
     if (req.method === 'GET' && req.url === '/health') {
@@ -169,23 +181,27 @@ const server = createServer(async (req, res) => {
         if (!ch) return send(res, 404, { error: `chapter not found in "${book}": "${chapter}"` });
         chapterId = ch.id;
       }
-      const existing = await w.writer.findPage(bk.id, title, chapterId);
-
-      // Authoritative per-user write check, then AUDIT before the write (fail-closed).
-      const principal: Principal = { userId };
-      const allowed = await w.authz.canWrite(principal, { bookId: bk.id, chapterId, pageId: existing?.id });
-      await auditSink.append([{
-        ts: new Date().toISOString(), userId,
-        query: `[publish] ${title}`,
-        resourceId: existing ? `page:${existing.id}` : `book:${bk.id}`,
-        decision: allowed ? 'allowed' : 'denied',
-      }]);
-      if (!allowed) return send(res, 403, { error: 'not authorized to write here' });
-
-      const page = existing
-        ? await w.writer.updatePage(existing.id, title, markdown)
-        : await w.writer.createPage({ bookId: bk.id, chapterId }, title, markdown);
-      return send(res, 200, { action: existing ? 'updated' : 'created', title, url: w.writer.pageUrl(bk, page) });
+      // Serialize same-target writes: re-resolve the page, authz, audit, and create/update all inside
+      // the lock so two concurrent identical publishes can't both see "not found" and both create.
+      const lockKey = `${bk.id}:${chapterId ?? 0}:${title.trim().toLowerCase()}`;
+      const out = await withWriteLock(lockKey, async (): Promise<{ status: number; body: unknown }> => {
+        const existing = await w.writer.findPage(bk.id, title, chapterId);
+        // Authoritative per-user write check, then AUDIT before the write (fail-closed).
+        const principal: Principal = { userId };
+        const allowed = await w.authz.canWrite(principal, { bookId: bk.id, chapterId, pageId: existing?.id });
+        await auditSink.append([{
+          ts: new Date().toISOString(), userId,
+          query: `[publish] ${title}`,
+          resourceId: existing ? `page:${existing.id}` : `book:${bk.id}`,
+          decision: allowed ? 'allowed' : 'denied',
+        }]);
+        if (!allowed) return { status: 403, body: { error: 'not authorized to write here' } };
+        const page = existing
+          ? await w.writer.updatePage(existing.id, title, markdown)
+          : await w.writer.createPage({ bookId: bk.id, chapterId }, title, markdown);
+        return { status: 200, body: { action: existing ? 'updated' : 'created', title, url: w.writer.pageUrl(bk, page) } };
+      });
+      return send(res, out.status, out.body);
     }
 
     // Audit-chain integrity check (secret-guarded). For ops/CISO to confirm the
