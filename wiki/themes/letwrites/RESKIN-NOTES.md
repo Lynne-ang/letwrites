@@ -21,6 +21,35 @@ Root causes (the reskin is VISUAL ONLY — these were layout/branding overreache
 3. **Doubled logo** — a customer-deployed instance sets its OWN `app-logo`, and the reskin's injected
    `header a.logo::before` "L" tile rendered a SECOND mark beside it. Fix: `::before{display:none}`.
 
+## Second client report — three issues, fully investigated on real BookStack
+
+1. **Two-tone white/grey background (grey shows on scroll).** Could NOT reproduce in
+   linuxserver/bookstack:latest (v26.05) with either the old or current CSS, at 1280–2000px —
+   our pages render all-white. The client's trigger is environment-specific (likely a different
+   BookStack build or browser zoom; "grey on scroll" points to a scroll-root background element).
+   Applied a DEFENSIVE fix regardless: force every background layer to the page color so a two-tone
+   is structurally impossible in light mode:
+   `html, body, #content, .tri-layout, .tri-layout-container, .tri-layout-mobile-tabs, #main-content,
+   .mainpage-contents { background: var(--lw-bg) !important; }` (token keeps dark mode correct).
+
+2. **Ordered list shows "1." for every item instead of 1/2/3.** NOT the reskin (it has no list
+   rules; clean markdown renders one `<ol>` numbered 1/2/3 correctly — verified). It's the MIGRATED
+   CONTENT: when numbered steps have a root-level paragraph/image BETWEEN them (not indented under the
+   item), CommonMark splits them into separate `<ol>`s, each restarting at 1 — reproduced (3 `<ol>`
+   for 3 steps). Fix is content/migration, NOT theme CSS: re-import with an improved converter that
+   keeps list continuity, or edit the pages (indent the between-content). Do NOT "fix" with a global
+   CSS counter — it would wrongly merge legitimately-separate lists on the same page.
+
+3. **/settings/* still stock (not reskinned).** BookStack DELIBERATELY excludes custom-head CSS on
+   settings routes — `layouts/parts/custom-head.blade.php`:
+   `@if(!request()->routeIs('settings.category')) {!! $headContent->forWeb() !!} @endif`.
+   So a custom-head reskin can NEVER reach the admin settings UI (BookStack protects it on purpose).
+   Recommend leaving settings stock (admin-only, low-impact, safe). Reskinning it would require
+   overriding a core Blade view via the theme — fragile and breaks on upgrade; not worth it.
+
+Reviewed on real BookStack across home / books / book / page (short+long, 1280–2000px) / login /
+settings / page-editor / search — all end-user pages clean; only admin settings stays stock (by design).
+
 LESSON (now load-bearing): validate theme changes on a REAL BookStack, not the preview. To stand one up
 locally on Apple Silicon: MariaDB 11.4 container (arm64-native, no emulation) + linuxserver/bookstack
 container on a shared docker network; the image reads DB creds from `/config/www/.env` (NOT `DB_*` env

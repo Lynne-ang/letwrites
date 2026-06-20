@@ -83,6 +83,11 @@ body,.page-content,input,select,textarea,button,.button,.text-button{
   font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif !important; -webkit-font-smoothing:antialiased;
 }
 body{ background:var(--lw-bg); color:var(--lw-text); font-size:15px; line-height:1.5; }
+/* Force EVERY background layer to the page color so there is never a two-tone split (BookStack's
+   default grey page bg showing through on tall/scrolled pages, or html showing past body on scroll).
+   Uses --lw-bg so dark mode still works (token flips to #191919). The content card is transparent so
+   it inherits this. This must cover html + the scroll root + all layout wrappers. */
+html, body, #content, .tri-layout, .tri-layout-container, .tri-layout-mobile-tabs, #main-content, .mainpage-contents{ background:var(--lw-bg) !important; }
 h1,h2,h3,h4,h5,h6{ color:var(--lw-text); }
 /* border-box so width:100% means EXACTLY the container width (fixes input vs button misalignment) */
 input,select,textarea,button,.button,a.button,input[type=submit]{ box-sizing:border-box !important; }
