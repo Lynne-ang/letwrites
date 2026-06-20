@@ -78,15 +78,16 @@ body, .page-content, input, select, textarea, button, .button, .text-button{
   font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif !important;
   -webkit-font-smoothing:antialiased;
 }
-body{ background:var(--lw-bg); color:var(--lw-text); font-size:15px; line-height:1.5; }
-.page-content{ color:var(--lw-text); line-height:1.7; }
+body{ background:var(--lw-bg); color:var(--lw-text); font-size:16px; line-height:1.5; }
+.page-content{ color:var(--lw-text); line-height:1.75; max-width:860px; }
 .page-content h1,.page-content h2,.page-content h3,.page-content h4,.page-content h5{
-  color:var(--lw-text) !important; font-weight:700; letter-spacing:-.01em; line-height:1.3;
+  color:var(--lw-text) !important; font-weight:700; letter-spacing:-.02em; line-height:1.25;
 }
-.page-content h1{ font-size:2rem; margin:.4em 0 .3em; }
-.page-content h2{ font-size:1.5rem; margin:1.4em 0 .3em; }
-.page-content h3{ font-size:1.2rem; }
-.page-content p,.page-content li{ font-size:1rem; }
+.page-content h1{ font-size:2.6rem; margin:.2em 0 .5em; }
+.page-content h2{ font-size:1.65rem; margin:1.8em 0 .4em; }
+.page-content h3{ font-size:1.3rem; margin:1.4em 0 .3em; }
+.page-content p,.page-content li{ font-size:1.05rem; }
+.page-content > *:first-child{ margin-top:0; }
 .page-content a{ color:var(--lw-accent); text-decoration:none; }
 .page-content a:hover{ text-decoration:underline; }
 .page-content blockquote{ border-left:3px solid var(--lw-border-solid); color:var(--lw-text-muted); padding-left:14px; margin-left:0; }
@@ -133,14 +134,21 @@ header #header-search input::placeholder{ color:var(--lw-text-muted) !important;
 }
 .tri-layout-right, .tri-layout-right-contents{ color:var(--lw-text-muted); }
 
-/* ---- Cards / entity lists: flat, hairline, soft hover (no heavy shadow) ---- */
-.card, .content-wrap, .grid-card, .featured-image-container{
+/* ---- Cards / entity lists: FLAT, frameless, soft hover (Notion has no panel chrome) ---- */
+.card, .content-wrap, .featured-image-container{
   border-radius:var(--lw-radius-lg) !important;
   box-shadow:none !important;
+  border:0 !important;
+  background:transparent !important;
 }
-.card, .grid-card{ border:1px solid var(--lw-border) !important; }
-.grid-card:hover{ background:var(--lw-hover); transition:background .15s ease; }
-.entity-list-item{ border-radius:var(--lw-radius); transition:background .15s ease; }
+/* Gallery/book cards: borderless, padding + hover fill instead of a frame */
+.grid-card{
+  border:0 !important; border-radius:var(--lw-radius-lg) !important; box-shadow:none !important;
+  background:transparent !important; padding:14px 16px !important;
+  transition:background .15s ease;
+}
+.grid-card:hover{ background:var(--lw-hover) !important; }
+.entity-list-item{ border-radius:var(--lw-radius); transition:background .15s ease; padding:6px 8px; }
 .entity-list-item:hover{ background:var(--lw-hover); }
 .entity-list-item .entity-list-item-name, h4.entity-list-item-name a{ color:var(--lw-text); font-weight:600; }
 .entity-list-item p, .entity-item-snippet{ color:var(--lw-text-muted); }
@@ -167,33 +175,41 @@ header #header-search input::placeholder{ color:var(--lw-text-muted) !important;
   outline:2px solid var(--lw-accent); outline-offset:2px;
 }
 
-/* ---- Forms / inputs: hairline, soft radius, comfortable, accent focus ---- */
+/* ---- Forms / inputs: borderless grey-fill (Notion style), full-width, accent focus ---- */
 input[type=text], input[type=email], input[type=password], input[type=search], input[type=number],
 select, textarea, .input-base, .form-group input, .form-group select, .form-group textarea{
-  border:1px solid var(--lw-border-solid) !important;
+  border:1px solid transparent !important;   /* transparent so focus border doesn't shift layout */
   border-radius:var(--lw-radius) !important;
-  background:var(--lw-surface) !important;
+  background:var(--lw-sidebar) !important;    /* subtle grey fill, not a hard box */
   color:var(--lw-text) !important;
-  padding:9px 11px !important;
-  min-height:40px;
+  padding:11px 13px !important;
+  min-height:42px; width:100%;
   box-shadow:none !important;
+  transition:background .12s ease, border-color .12s ease, box-shadow .12s ease;
 }
+input::placeholder, textarea::placeholder{ color:var(--lw-text-muted) !important; }
+input:hover, select:hover, textarea:hover{ background:#f1f1ef !important; }
 input:focus, select:focus, textarea:focus, .input-base:focus{
+  background:var(--lw-surface) !important;
   border-color:var(--lw-accent) !important;
   box-shadow:0 0 0 3px var(--lw-accent-soft) !important;
   outline:none !important;
 }
-label, .form-group label{ color:var(--lw-text); font-weight:500; }
+/* Labels: small, muted, sit ABOVE the field (Notion form rhythm) */
+label, .form-group label{ color:var(--lw-text-muted); font-weight:500; font-size:.82rem; display:block; margin-bottom:6px; }
+.form-group{ margin-bottom:18px; }
 .form-group .text-muted, .text-muted, .faded{ color:var(--lw-text-muted) !important; }
 
-/* ---- Tables: minimal, row hairlines, quiet header ---- */
+/* ---- Tables: borderless, row hairlines only, quiet bold header (no grid lines) ---- */
 .page-content table, table.table, .table{ border-collapse:collapse; width:100%; }
 .page-content table th, table.table th, .table th{
-  background:var(--lw-sidebar); color:var(--lw-text); font-weight:600; text-align:left;
-  border:1px solid var(--lw-border) !important; padding:8px 12px;
+  background:transparent; color:var(--lw-text-muted); font-weight:600; text-align:left;
+  border:0 !important; border-bottom:1px solid var(--lw-border-solid) !important;
+  padding:8px 14px 8px 0; font-size:.85rem; letter-spacing:.01em;
 }
 .page-content table td, table.table td, .table td{
-  border:1px solid var(--lw-border) !important; padding:8px 12px; color:var(--lw-text);
+  border:0 !important; border-bottom:1px solid var(--lw-border) !important;
+  padding:10px 14px 10px 0; color:var(--lw-text);
 }
 table.table tr:hover td{ background:var(--lw-hover); }
 
@@ -246,7 +262,7 @@ body.dark-mode .button.primary:hover, body.dark-mode button.button.primary:hover
   *{ transition:none !important; }
 }
 
-.pagewrap{max-width:1100px;margin:0 auto;padding:18px 16px 60px}.demo-label{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--lw-text-muted);margin:34px 0 10px;border-bottom:1px solid var(--lw-border);padding-bottom:6px}.header-inner{display:flex;align-items:center;gap:18px;max-width:1100px;margin:0 auto;padding:0 16px;height:56px}#header-search input{width:240px}.header-links .links{display:flex;gap:16px;margin-left:auto}.tri-layout-container{display:grid;grid-template-columns:240px 1fr 220px;gap:0;border:1px solid var(--lw-border);border-radius:var(--lw-radius-lg);overflow:hidden}.tri-layout-left-contents,.tri-layout-middle-contents,.tri-layout-right-contents{padding:18px}.sidebar-page-list{list-style:none;margin:0;padding:0}.entity-list-item{padding:6px 8px;cursor:pointer}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:4px}.grid-card{padding:16px}.settings-container{display:grid;grid-template-columns:220px 1fr;gap:18px}.setting-nav{display:flex;flex-direction:column;gap:2px}.setting-nav a{padding:8px 10px;text-decoration:none}.login-wrap{display:flex;justify-content:center;margin-top:8px}.card.login-form{padding:24px;width:340px}.actions{margin-top:18px;display:flex;gap:8px}h5{font-size:11px;letter-spacing:.06em;color:var(--lw-text-muted);margin:0 0 10px}</style></head>
+.pagewrap{max-width:1100px;margin:0 auto;padding:18px 16px 60px}.demo-label{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--lw-text-muted);margin:34px 0 10px;border-bottom:1px solid var(--lw-border);padding-bottom:6px}.header-inner{display:flex;align-items:center;gap:18px;max-width:1100px;margin:0 auto;padding:0 16px;height:56px}#header-search input{width:240px}.header-links .links{display:flex;gap:16px;margin-left:auto}.tri-layout-container{display:grid;grid-template-columns:240px 1fr 200px;gap:40px;align-items:start}.tri-layout-left{background:var(--lw-sidebar);border-radius:var(--lw-radius-lg)}.tri-layout-left-contents{padding:16px 14px}.tri-layout-middle-contents{padding:8px 0}.tri-layout-right-contents{padding:8px 0}.sidebar-page-list{list-style:none;margin:0;padding:0}.entity-list-item{padding:6px 8px;cursor:pointer}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:4px}.settings-container{display:grid;grid-template-columns:220px 1fr;gap:48px;max-width:980px}.setting-nav{display:flex;flex-direction:column;gap:2px}.setting-nav a{padding:8px 12px;text-decoration:none}.setting-list{max-width:520px}.login-wrap{display:flex;justify-content:center;margin-top:8px}.card.login-form{padding:36px 32px;width:380px;border:1px solid var(--lw-border) !important;border-radius:14px !important;box-shadow:0 4px 24px rgba(15,15,15,.06) !important}.card.login-form h3{font-size:1.4rem;margin:0 0 22px}.actions{margin-top:18px;display:flex;gap:8px}h5{font-size:11px;letter-spacing:.06em;color:var(--lw-text-muted);margin:0 0 10px}</style></head>
 <body><div style="background:#37352f;color:#fff;font:600 13px/1 Inter,sans-serif;padding:8px 14px;text-align:center">AFTER — Letwrites Notion reskin (real branding.css applied)</div>
 <header id="header">
   <div class="header-inner">
