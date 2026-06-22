@@ -150,11 +150,12 @@ header #header-search input:focus{ background:#fff !important; border-color:var(
 .card{ background:var(--lw-bg) !important; }
 .content-wrap,.featured-image-container{ background:var(--lw-bg) !important; border:0 !important; box-shadow:none !important; }
 .grid-card{ background:transparent !important; border:0 !important; box-shadow:none !important; border-radius:var(--lw-radius-lg) !important; padding:14px 16px !important; transition:background .15s ease; }
-/* Header search suggestions: BookStack's base rule is opacity:.5 + scale(.9) + z-index:-1, faded to
-   opacity:1 by a keyframe when shown — but that can leave the panel TRANSLUCENT (content bleeds through)
-   and behind content. Force it fully OPAQUE, full-scale, and above content when shown. It's display:none
-   when hidden, so forcing opacity:1 can't reveal a hidden panel. Keep BookStack's own shadow/position. */
-.global-search-suggestions{ background:var(--lw-bg) !important; opacity:1 !important; transform:none !important; z-index:55 !important; }
+/* Header search suggestions: BookStack's base rule is opacity:.5 + scale(.9), faded to opacity:1 by a
+   keyframe — but it can land TRANSLUCENT so page content bleeds through. The ONLY fix needed is full
+   opacity. Do NOT raise z-index: BookStack deliberately stacks this panel BEHIND the search box (which
+   floats in the panel's 56px top padding); a high z-index covers the search box. Keep BookStack's own
+   position/z-index/shadow; just make it opaque. display:none when hidden, so opacity:1 can't reveal it. */
+.global-search-suggestions{ background:var(--lw-bg) !important; opacity:1 !important; transform:none !important; }
 /* Other floating popups (entity picker, menus): opaque surface + hairline + shadow + stacking. */
 .dropdown-search-dropdown, .dropdown-menu, .dropdown-container ul, .popup-body{
   background:var(--lw-bg) !important; opacity:1 !important; border:1px solid var(--lw-border-solid) !important;
