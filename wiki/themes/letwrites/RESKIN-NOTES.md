@@ -40,12 +40,17 @@ Root causes (the reskin is VISUAL ONLY — these were layout/branding overreache
    keeps list continuity, or edit the pages (indent the between-content). Do NOT "fix" with a global
    CSS counter — it would wrongly merge legitimately-separate lists on the same page.
 
-3. **/settings/* still stock (not reskinned).** BookStack DELIBERATELY excludes custom-head CSS on
-   settings routes — `layouts/parts/custom-head.blade.php`:
-   `@if(!request()->routeIs('settings.category')) {!! $headContent->forWeb() !!} @endif`.
-   So a custom-head reskin can NEVER reach the admin settings UI (BookStack protects it on purpose).
-   Recommend leaving settings stock (admin-only, low-impact, safe). Reskinning it would require
-   overriding a core Blade view via the theme — fragile and breaks on upgrade; not worth it.
+3. **/settings/* was stock (not reskinned) — NOW FIXED via a theme view override.** BookStack's core
+   `layouts/parts/custom-head.blade.php` wraps the custom head in
+   `@if(!request()->routeIs('settings.category'))`, which stops the reskin (delivered via app-custom-head)
+   from reaching the admin settings UI. Fix: the theme now OVERRIDES that partial
+   (`wiki/themes/letwrites/layouts/parts/custom-head.blade.php`) to drop the guard, so the reskin applies
+   site-wide including settings. This uses BookStack's supported theme view-override mechanism (it requires
+   `APP_THEME=letwrites`, which the deployment already sets for the authz routes). Validated on real
+   BookStack: settings now has the white header + clean white layout, and the admin UI (tabs, toggles,
+   category nav) is intact. CAVEATS: (a) after deploying the theme, you MUST clear the view cache
+   (`php artisan view:clear`) or the override won't load — BookStack caches compiled Blade;
+   (b) VERIFY-ON-UPGRADE — if a future BookStack changes that core partial, re-sync the override.
 
 Reviewed on real BookStack across home / books / book / page (short+long, 1280–2000px) / login /
 settings / page-editor / search — all end-user pages clean; only admin settings stays stock (by design).
