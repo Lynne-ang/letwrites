@@ -142,8 +142,24 @@ header #header-search input:focus{ background:#fff !important; border-color:var(
 .tri-layout-right,.tri-layout-right-contents{ color:var(--lw-text-muted); }
 
 /* ---- Cards / lists: frameless ---- */
-.card,.content-wrap,.featured-image-container{ background:transparent !important; border:0 !important; box-shadow:none !important; }
+/* IMPORTANT: .card must stay OPAQUE. BookStack reuses .card for FLOATING popups — the header search
+   suggestions (.global-search-suggestions.card) and the entity picker (.dropdown-search-dropdown.card).
+   A transparent .card makes those see-through so they overlap the page content beneath. So: cards are
+   white (flat on the white page anyway), CONTENT cards drop their border/shadow, and FLOATING popups
+   get a shadow + border below so they read as panels above the content. */
+.card{ background:var(--lw-bg) !important; }
+.content-wrap,.featured-image-container{ background:var(--lw-bg) !important; border:0 !important; box-shadow:none !important; }
 .grid-card{ background:transparent !important; border:0 !important; box-shadow:none !important; border-radius:var(--lw-radius-lg) !important; padding:14px 16px !important; transition:background .15s ease; }
+/* Header search suggestions: BookStack's base rule is opacity:.5 + scale(.9) + z-index:-1, faded to
+   opacity:1 by a keyframe when shown — but that can leave the panel TRANSLUCENT (content bleeds through)
+   and behind content. Force it fully OPAQUE, full-scale, and above content when shown. It's display:none
+   when hidden, so forcing opacity:1 can't reveal a hidden panel. Keep BookStack's own shadow/position. */
+.global-search-suggestions{ background:var(--lw-bg) !important; opacity:1 !important; transform:none !important; z-index:55 !important; }
+/* Other floating popups (entity picker, menus): opaque surface + hairline + shadow + stacking. */
+.dropdown-search-dropdown, .dropdown-menu, .dropdown-container ul, .popup-body{
+  background:var(--lw-bg) !important; opacity:1 !important; border:1px solid var(--lw-border-solid) !important;
+  border-radius:var(--lw-radius-lg) !important; box-shadow:0 10px 30px rgba(15,15,15,.16) !important; z-index:55 !important;
+}
 .grid-card:hover{ background:var(--lw-hover) !important; }
 .entity-list-item{ border-radius:var(--lw-radius); padding:8px; transition:background .15s ease; }
 .entity-list-item:hover{ background:var(--lw-hover); }
