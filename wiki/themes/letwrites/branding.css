@@ -113,7 +113,9 @@ header #header-search, header .search-box{ max-width:300px; }
 header #header-search input, header .search-box input, #header-search input[type=text]{
   width:240px !important; max-width:100%; background:var(--lw-sidebar) !important;
   border:1px solid var(--lw-border) !important; color:var(--lw-text) !important; border-radius:8px !important;
-  padding:7px 12px !important; min-height:36px !important; font-size:14px !important;
+  /* keep left padding clear of BookStack's absolute search icon (it sits at inset-inline-start:8px);
+     overriding to a small left padding makes the typed text overlap the magnifying-glass icon. */
+  padding:7px 12px 7px 38px !important; min-height:36px !important; font-size:14px !important;
 }
 header #header-search input:focus{ background:#fff !important; border-color:var(--lw-accent) !important; box-shadow:0 0 0 3px var(--lw-accent-soft) !important; }
 
